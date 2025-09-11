@@ -1,6 +1,8 @@
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-
+using Application.Interfaces;
+using Infrastructure.Repositories;
+using Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +10,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
+
+
+builder.Services.AddScoped<ISportRepository, SportRepository>();
+builder.Services.AddScoped<ISportService, SportService>();
+
+
+builder.Services.AddControllers();
 
 
 builder.Services.AddEndpointsApiExplorer();
@@ -24,11 +33,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 
-app.MapGet("/testdb", async (AppDbContext db) =>
-
-{
-    var count = await db.Players.CountAsync();
-    return Results.Ok(new { UsersCount = count });
-});
+app.MapControllers();
 
 app.Run();
