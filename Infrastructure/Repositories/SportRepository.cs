@@ -91,7 +91,8 @@ public class SportRepository: ISportRepository
             .Select(s => new SingleSportDto()
             {
                 Title = s.Title,
-                Group = s.Group
+                Group = s.Group,
+                Key = s.Key
             })
             .ToListAsync();
         return sports;

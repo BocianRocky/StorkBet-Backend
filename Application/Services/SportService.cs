@@ -31,7 +31,12 @@ public class SportService: ISportService
             .Select(g => new GroupSportDto
             {
                 Group = g.Key,
-                Titles = string.Join(", ", g.Select(s => s.Title))
+                Sports = g.Select(s=>new SingleSportDto
+                {
+                    Title = s.Title,
+                    Key = s.Key,
+                    Group = s.Group
+                }).ToList()
             })
             .ToList();
         return grouped;
