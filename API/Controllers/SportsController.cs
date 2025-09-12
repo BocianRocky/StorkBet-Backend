@@ -8,23 +8,32 @@ using Microsoft.AspNetCore.Mvc;
 public class SportsController:ControllerBase
 {
     private readonly ISportService _sportService;
+    private readonly ISportSyncService _sportSyncService;
 
-    public SportsController(ISportService sportService)
+    public SportsController(ISportService sportService, ISportSyncService sportSyncService)
     {
         _sportService = sportService;
+        _sportSyncService = sportSyncService;
     }
 
-    [HttpGet]
+    [HttpPost("sync")]
+    public async Task<IActionResult> Sync()
+    {
+        await _sportSyncService.SyncSportsAsync();
+        return Ok("Sports synchronized successfully");
+    }
+
+    [HttpGet("all")]
     public async Task<IActionResult> GetAll()
     {
         var sports = await _sportService.GetAllSportsAsync();
         return Ok(sports);
     }
-
-    [HttpPost]
-    public async Task<IActionResult> AddOrUpdate([FromBody] Sport sport)
+    [HttpGet("grouped")]
+    public async Task<IActionResult> GetGroupedSports()
     {
-        await _sportService.AddOrUpdateSportAsync(sport);
-        return Ok(sport);
+        var groupedSports = await _sportService.GetGroupedSportsAsync();
+        return Ok(groupedSports);
     }
+    
 }

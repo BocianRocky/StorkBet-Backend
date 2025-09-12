@@ -1,8 +1,9 @@
+using Application.DTOs;
 using Application.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Sport = Domain.Entities.Sport;
 
+using Infrastructure.Data;
 namespace Infrastructure.Repositories;
 
 public class SportRepository: ISportRepository
@@ -14,10 +15,10 @@ public class SportRepository: ISportRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Sport>> GetAllAsync()
+    public async Task<IEnumerable<Domain.Entities.Sport>> GetAllAsync()
     {
         return await _context.Sports
-            .Select(s => new Sport
+            .Select(s => new Domain.Entities.Sport
             {
                 Id = s.Id,
                 Key = s.Key,
@@ -29,11 +30,11 @@ public class SportRepository: ISportRepository
             .ToListAsync();
     }
 
-    public Task<Sport?> GetByKeyAsync(string key)
+    public Task<Domain.Entities.Sport?> GetByKeyAsync(string key)
     {
         var sport = _context.Sports
             .Where(s => s.Key == key)
-            .Select(s => new Sport
+            .Select(s => new Domain.Entities.Sport
             {
                 Id = s.Id,
                 Key = s.Key,
@@ -46,13 +47,14 @@ public class SportRepository: ISportRepository
         return sport;
     }
 
-    public async Task AddAsync(Sport sport)
+    public async Task AddOrUpdateAsync(Domain.Entities.Sport sport)
     {
         var existing = await _context.Sports
             .FirstOrDefaultAsync(s => s.Key == sport.Key);
 
         if (existing != null)
         {
+            
             existing.Group = sport.Group;
             existing.Title = sport.Title;
             existing.Description = sport.Description;
@@ -60,19 +62,38 @@ public class SportRepository: ISportRepository
         }
         else
         {
-            await _context.Sports.AddAsync(new Infrastructure.Data.Sport
+            
+            var newEntity = new Sport
             {
                 Key = sport.Key,
                 Group = sport.Group,
                 Title = sport.Title,
                 Description = sport.Description,
                 HasOutrights = sport.HasOutrights
-            });
+            };
+            await _context.Sports.AddAsync(newEntity);
+
+
+            
         }
+
+        await _context.SaveChangesAsync();
     }
 
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+    public async Task<List<SingleSportDto>> GetGroupedSportsAsync()
+    {
+        var sports = await _context.Sports
+            .AsNoTracking()
+            .Select(s => new SingleSportDto()
+            {
+                Title = s.Title,
+                Group = s.Group
+            })
+            .ToListAsync();
+        return sports;
     }
 }

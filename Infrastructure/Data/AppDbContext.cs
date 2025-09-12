@@ -281,7 +281,7 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Sport");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Description)
                 .HasColumnType("text")
                 .HasColumnName("description");
