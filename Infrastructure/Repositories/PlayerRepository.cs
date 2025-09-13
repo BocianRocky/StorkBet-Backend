@@ -58,4 +58,37 @@ public class PlayerRepository : IPlayerRepository
             RefreshTokenExp = dbPlayer.RefreshTokenExp
         };
     }
+
+    public async Task<Player?> GetByRefreshTokenAsync(string refreshToken)
+    {
+        var dbPlayer = await _context.Players.FirstOrDefaultAsync(p => p.RefreshToken == refreshToken);
+        
+        if (dbPlayer == null)
+            return null;
+            
+        return new Player
+        {
+            Id = dbPlayer.Id,
+            Name = dbPlayer.Name,
+            LastName = dbPlayer.LastName,
+            Email = dbPlayer.Email,
+            Password = dbPlayer.Password,
+            Salt = dbPlayer.Salt,
+            AccountBalance = dbPlayer.AccountBalance,
+            RefreshToken = dbPlayer.RefreshToken,
+            RefreshTokenExp = dbPlayer.RefreshTokenExp
+        };
+    }
+
+    public async Task UpdateRefreshTokenAsync(int playerId, string refreshToken, DateTime refreshTokenExp)
+    {
+        var dbPlayer = await _context.Players.FirstOrDefaultAsync(p => p.Id == playerId);
+        
+        if (dbPlayer != null)
+        {
+            dbPlayer.RefreshToken = refreshToken;
+            dbPlayer.RefreshTokenExp = refreshTokenExp;
+            await _context.SaveChangesAsync();
+        }
+    }
 }

@@ -11,3 +11,4 @@ public class LoginResponseDto
     public string Email { get; set; }
     public decimal AccountBalance { get; set; }
 }
+

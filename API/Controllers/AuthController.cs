@@ -1,8 +1,13 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using API.DTOs;
 using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace API.Controllers;
 
@@ -64,8 +69,8 @@ public class AuthController:ControllerBase
         string newRefreshToken = SecurityHelper.GenerateRefreshToken();
         DateTime refreshTokenExp = DateTime.UtcNow.AddDays(1);
         
-        // Aktualizuj refresh token w bazie (możesz dodać metodę UpdateRefreshToken do repository)
-        // Na razie pomijam to, ale powinieneś to zrobić
+        // Aktualizuj refresh token w bazie
+        await _playerRepository.UpdateRefreshTokenAsync(player.Id, newRefreshToken, refreshTokenExp);
         
         // Generuj JWT token
         string secretKey = _configuration["SecretKey"] ?? "ThisIsAVeryLongSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong123456789";
@@ -84,6 +89,57 @@ public class AuthController:ControllerBase
         };
 
         return Ok(response);
+    }
+    
+    
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh(RefreshTokenRequestDto request)
+    {
+        try
+        {
+            // Znajdź gracza po refresh token
+            var player = await _playerRepository.GetByRefreshTokenAsync(request.RefreshToken);
+            
+            if (player == null)
+            {
+                return Unauthorized("Invalid refresh token");
+            }
+
+            // Sprawdź czy refresh token nie wygasł
+            if (player.RefreshTokenExp < DateTime.UtcNow)
+            {
+                return Unauthorized("Refresh token expired");
+            }
+
+            // Generuj nowy refresh token
+            string newRefreshToken = SecurityHelper.GenerateRefreshToken();
+            DateTime refreshTokenExp = DateTime.UtcNow.AddDays(1);
+            
+            // Aktualizuj refresh token w bazie
+            await _playerRepository.UpdateRefreshTokenAsync(player.Id, newRefreshToken, refreshTokenExp);
+
+            // Generuj nowy JWT token
+            string secretKey = _configuration["SecretKey"] ?? "ThisIsAVeryLongSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong123456789";
+            string accessToken = SecurityHelper.GenerateJwtToken(player.Id, player.Email, secretKey);
+
+            var response = new LoginResponseDto
+            {
+                AccessToken = accessToken,
+                RefreshToken = newRefreshToken,
+                RefreshTokenExp = refreshTokenExp,
+                UserId = player.Id,
+                Name = player.Name,
+                LastName = player.LastName,
+                Email = player.Email,
+                AccountBalance = player.AccountBalance
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error refreshing token: {ex.Message}");
+        }
     }
     
 }
