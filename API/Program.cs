@@ -19,6 +19,7 @@ builder.Services.AddScoped<ISportService, SportService>();
 builder.Services.AddScoped<ISportSyncService, SportSyncService>();
 builder.Services.AddScoped<IOddsApiService, OddsApiService>();
 builder.Services.AddHttpClient<IOddsApiService, OddsApiService>();
+builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
 
 builder.Services.Configure<OddsApiOptions>(
     builder.Configuration.GetSection("OddsApi")

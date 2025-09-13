@@ -139,8 +139,6 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("EventTeam");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
-
             entity.HasOne(d => d.Event).WithMany(p => p.EventTeams)
                 .HasForeignKey(d => d.EventId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -217,7 +215,6 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Player");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.AccountBalance).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Email)
                 .HasMaxLength(20)
@@ -281,7 +278,6 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Sport");
 
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Description)
                 .HasColumnType("text")
                 .HasColumnName("description");
@@ -306,7 +302,6 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Team");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.SportId).HasColumnName("Sport_id");
             entity.Property(e => e.TeamName)
                 .HasMaxLength(20)
@@ -324,7 +319,6 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Transaction");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.Player).WithMany(p => p.Transactions)
