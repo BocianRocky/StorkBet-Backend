@@ -17,5 +17,7 @@ public partial class Sport
 
     public int HasOutrights { get; set; }
 
+    public virtual ICollection<Event> Events { get; set; } = new List<Event>();
+
     public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
 }

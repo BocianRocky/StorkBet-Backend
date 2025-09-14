@@ -11,8 +11,6 @@ public partial class Team
 
     public int SportId { get; set; }
 
-    public virtual ICollection<EventTeam> EventTeams { get; set; } = new List<EventTeam>();
-
     public virtual ICollection<Odd> Odds { get; set; } = new List<Odd>();
 
     public virtual Sport Sport { get; set; } = null!;

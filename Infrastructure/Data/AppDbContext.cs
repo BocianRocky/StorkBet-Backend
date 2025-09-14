@@ -17,11 +17,7 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<BetSlipOdd> BetSlipOdds { get; set; }
 
-    public virtual DbSet<BetType> BetTypes { get; set; }
-
     public virtual DbSet<Event> Events { get; set; }
-
-    public virtual DbSet<EventTeam> EventTeams { get; set; }
 
     public virtual DbSet<Group> Groups { get; set; }
 
@@ -49,7 +45,6 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("AvailablePromotion");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Availability)
                 .HasMaxLength(20)
                 .IsUnicode(false)
@@ -72,7 +67,6 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("BetSlip");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Date)
                 .IsRowVersion()
@@ -89,8 +83,7 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("BetSlipOdds_pk");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.OddsOddsId).HasColumnName("Odds_OddsId");
+            entity.Property(e => e.OddsId).HasColumnName("Odds_Id");
             entity.Property(e => e.Wynik).HasColumnName("wynik");
 
             entity.HasOne(d => d.BetSlip).WithMany(p => p.BetSlipOdds)
@@ -98,22 +91,10 @@ public partial class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("BetSlipOdds_BetSlip");
 
-            entity.HasOne(d => d.OddsOdds).WithMany(p => p.BetSlipOdds)
-                .HasForeignKey(d => d.OddsOddsId)
+            entity.HasOne(d => d.Odds).WithMany(p => p.BetSlipOdds)
+                .HasForeignKey(d => d.OddsId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("BetSlipOdds_Odds");
-        });
-
-        modelBuilder.Entity<BetType>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("BetType_pk");
-
-            entity.ToTable("BetType");
-
-            entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.BetTypeName)
-                .HasMaxLength(20)
-                .IsUnicode(false);
         });
 
         modelBuilder.Entity<Event>(entity =>
@@ -122,7 +103,9 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Event");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.ApiId)
+                .HasMaxLength(255)
+                .IsUnicode(false);
             entity.Property(e => e.EventDate).HasColumnType("datetime");
             entity.Property(e => e.EventDateEnd).HasColumnType("datetime");
             entity.Property(e => e.EventName)
@@ -131,23 +114,12 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.EventStatus)
                 .HasMaxLength(20)
                 .IsUnicode(false);
-        });
+            entity.Property(e => e.SportId).HasColumnName("Sport_Id");
 
-        modelBuilder.Entity<EventTeam>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("EventTeam_pk");
-
-            entity.ToTable("EventTeam");
-
-            entity.HasOne(d => d.Event).WithMany(p => p.EventTeams)
-                .HasForeignKey(d => d.EventId)
+            entity.HasOne(d => d.Sport).WithMany(p => p.Events)
+                .HasForeignKey(d => d.SportId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("EventTeam_Event");
-
-            entity.HasOne(d => d.Team).WithMany(p => p.EventTeams)
-                .HasForeignKey(d => d.TeamId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("EventTeam_Team");
+                .HasConstraintName("Event_Sport");
         });
 
         modelBuilder.Entity<Group>(entity =>
@@ -156,7 +128,6 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Group");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.GroupName).HasColumnName("Group_name");
         });
 
@@ -166,7 +137,6 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Groupchat_messages");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.MessageText)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -190,13 +160,9 @@ public partial class AppDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("Odds_pk");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.LastUpdate).HasColumnType("datetime");
             entity.Property(e => e.OddsValue).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.Wynik).HasColumnName("wynik");
-
-            entity.HasOne(d => d.BetType).WithMany(p => p.Odds)
-                .HasForeignKey(d => d.BetTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("Odds_BetType");
+            entity.Property(e => e.TeamId).HasColumnName("Team_Id");
 
             entity.HasOne(d => d.Event).WithMany(p => p.Odds)
                 .HasForeignKey(d => d.EventId)
@@ -243,7 +209,6 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Player_Group");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.IsGroupOwner).HasColumnName("isGroupOwner");
             entity.Property(e => e.JoinedAt)
                 .IsRowVersion()
@@ -266,7 +231,6 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Promotion");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.PromotionName)
                 .HasMaxLength(20)
                 .IsUnicode(false);
@@ -304,7 +268,7 @@ public partial class AppDbContext : DbContext
 
             entity.Property(e => e.SportId).HasColumnName("Sport_id");
             entity.Property(e => e.TeamName)
-                .HasMaxLength(20)
+                .HasMaxLength(60)
                 .IsUnicode(false);
 
             entity.HasOne(d => d.Sport).WithMany(p => p.Teams)

@@ -12,4 +12,5 @@ public interface ISportRepository
     Task AddOrUpdateAsync(Sport sport);
     Task SaveChangesAsync();
     Task<List<SingleSportDto>> GetGroupedSportsAsync();
+    
 }

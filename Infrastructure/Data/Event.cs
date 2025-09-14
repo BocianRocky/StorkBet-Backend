@@ -7,6 +7,8 @@ public partial class Event
 {
     public int Id { get; set; }
 
+    public string? ApiId { get; set; }
+
     public string EventStatus { get; set; } = null!;
 
     public string EventName { get; set; } = null!;
@@ -15,7 +17,9 @@ public partial class Event
 
     public DateTime EventDateEnd { get; set; }
 
-    public virtual ICollection<EventTeam> EventTeams { get; set; } = new List<EventTeam>();
+    public int SportId { get; set; }
 
     public virtual ICollection<Odd> Odds { get; set; } = new List<Odd>();
+
+    public virtual Sport Sport { get; set; } = null!;
 }

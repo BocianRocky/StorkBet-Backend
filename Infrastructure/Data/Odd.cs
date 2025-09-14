@@ -9,19 +9,15 @@ public partial class Odd
 
     public int EventId { get; set; }
 
-    public int TeamId { get; set; }
-
     public decimal OddsValue { get; set; }
-
-    public int BetTypeId { get; set; }
-
-    public DateOnly? OddEnd { get; set; }
 
     public int? Wynik { get; set; }
 
-    public virtual ICollection<BetSlipOdd> BetSlipOdds { get; set; } = new List<BetSlipOdd>();
+    public DateTime? LastUpdate { get; set; }
 
-    public virtual BetType BetType { get; set; } = null!;
+    public int TeamId { get; set; }
+
+    public virtual ICollection<BetSlipOdd> BetSlipOdds { get; set; } = new List<BetSlipOdd>();
 
     public virtual Event Event { get; set; } = null!;
 
