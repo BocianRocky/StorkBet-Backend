@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.DTOs;
 using Domain.Entities;
 
 namespace Application.Services;
@@ -12,9 +13,10 @@ public class OddsService:IOddsService
         _eventRepository = eventRepository;
     }
     
-    public async Task<List<Odds>> GetOddsBySportAsync(string sportKey)
+
+    public async Task<List<EventWithOddsDto>> GetEventsWithOddsBySportAsync(string sportKey)
     {
-        var odds = await _eventRepository.GetOddsBySportKeyAsync(sportKey);
-        return odds;
+        var eventsWithOdds = await _eventRepository.GetEventsWithOddsBySportKeyAsync(sportKey);
+        return eventsWithOdds;
     }
 }

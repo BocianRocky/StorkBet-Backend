@@ -24,14 +24,16 @@ public class OddsController: ControllerBase
         return Ok(new { Message = $"Odds for {sportKey} imported" });
     }
     
+    
+
     [HttpGet("{sportKey}")]
-    public async Task<IActionResult> GetOddsBySport(string sportKey)
+    public async Task<IActionResult> GetEventsWithOddsBySport(string sportKey)
     {
-        var odds = await _oddsService.GetOddsBySportAsync(sportKey);
+        var eventsWithOdds = await _oddsService.GetEventsWithOddsBySportAsync(sportKey);
 
-        if (odds == null || !odds.Any())
-            return NotFound($"Nie znaleziono kursów dla sportu '{sportKey}'.");
+        if (eventsWithOdds == null || !eventsWithOdds.Any())
+            return NotFound($"Nie znaleziono eventów dla sportu '{sportKey}'.");
 
-        return Ok(odds);
+        return Ok(eventsWithOdds);
     }
 }

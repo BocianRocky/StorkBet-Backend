@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Application.DTOs;
 
 namespace Application.Interfaces;
 
@@ -12,6 +13,6 @@ public interface IEventRepository
     
     Task<Odds?> GetOddByEventAndTeamAsync(int eventId, int teamId);
     Task UpdateOddAsync(int oddId, decimal newOddsValue, DateTime lastUpdate);
-
-    Task<List<Odds>> GetOddsBySportKeyAsync(string sportKey);
+    
+    Task<List<EventWithOddsDto>> GetEventsWithOddsBySportKeyAsync(string sportKey);
 }

@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.DTOs;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -120,26 +121,26 @@ public class EventRepository : IEventRepository
         oddEntity.LastUpdate = lastUpdate;
         
     }
+    
 
-    public async Task<List<Domain.Entities.Odds>> GetOddsBySportKeyAsync(string sportKey)
+    public async Task<List<EventWithOddsDto>> GetEventsWithOddsBySportKeyAsync(string sportKey)
     {
-        return await _context.Odds
-            .Include(o => o.Team)               // dołączamy drużynę
-            .Include(o => o.Event)              // dołączamy event
-            .ThenInclude(e => e.Sport)      // aby mieć sport i jego klucz
-            .Where(o => o.Event.Sport.Key == sportKey)  // filtr po sportKey
-            .Select(o => new Domain.Entities.Odds
+        return await _context.Events
+            .Include(e => e.Odds)
+            .ThenInclude(o => o.Team)
+            .Include(e => e.Sport)
+            .Where(e => e.Sport.Key == sportKey)
+            .Where(e => e.EventDate > DateTime.UtcNow)
+            .OrderBy(e => e.EventDate)
+            .Select(e => new EventWithOddsDto
             {
-                Id = o.Id,
-                OddsValue = o.OddsValue,
-                LastUpdate = o.LastUpdate,
-                EventId = o.EventId,
-                TeamId = o.TeamId,
-                Team = new Domain.Entities.Team
+                EventId = e.Id,
+                EventDate = e.EventDate,
+                Odds = e.Odds.Select(o => new OddDto
                 {
-                    Id = o.Team.Id,
-                    TeamName = o.Team.TeamName
-                }
+                    TeamName = o.Team.TeamName,
+                    OddsValue = o.OddsValue
+                }).ToList()
             })
             .ToListAsync();
     }
