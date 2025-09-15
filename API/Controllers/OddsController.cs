@@ -8,10 +8,12 @@ namespace API.Controllers;
 public class OddsController: ControllerBase
 {
     private readonly IOddsSyncService _oddsSyncService;
+    private readonly IOddsService _oddsService;
     
-    public OddsController( IOddsSyncService oddsSyncService)
+    public OddsController( IOddsSyncService oddsSyncService, IOddsService oddsService)
     {
         _oddsSyncService = oddsSyncService;
+        _oddsService = oddsService;
     }
     
     
@@ -20,5 +22,16 @@ public class OddsController: ControllerBase
     {
         await _oddsSyncService.SyncEventsAndOddsAsync(sportKey);
         return Ok(new { Message = $"Odds for {sportKey} imported" });
+    }
+    
+    [HttpGet("{sportKey}")]
+    public async Task<IActionResult> GetOddsBySport(string sportKey)
+    {
+        var odds = await _oddsService.GetOddsBySportAsync(sportKey);
+
+        if (odds == null || !odds.Any())
+            return NotFound($"Nie znaleziono kursów dla sportu '{sportKey}'.");
+
+        return Ok(odds);
     }
 }

@@ -24,6 +24,7 @@ builder.Services.AddScoped<ISportService, SportService>();
 builder.Services.AddScoped<ISportSyncService, SportSyncService>();
 builder.Services.AddScoped<IOddsApiService, OddsApiService>();
 builder.Services.AddScoped<IOddsSyncService, OddsSyncService>();
+builder.Services.AddScoped<IOddsService, OddsService>();
 
 // HttpClient dla OddsApiService
 builder.Services.AddHttpClient<IOddsApiService, OddsApiService>();

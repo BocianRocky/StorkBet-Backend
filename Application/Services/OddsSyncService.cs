@@ -79,20 +79,14 @@ public class OddsSyncService : IOddsSyncService
                     EventId = existingEventInDb.Id
                 };
                 await _eventRepository.AddOddAsync(newOdd);
-                
-
-
-
             }
-            
-            
-            
-            
-            
-            
         }
         await _teamRepository.SaveChangesAsync();
         await _eventRepository.SaveChangesAsync();
     }
-    
+
+    public Task<List<Odds>> GetOddsBySportKeyAsync(string sportKey)
+    {
+        throw new NotImplementedException();
+    }
 }
