@@ -1,6 +1,9 @@
 using Application.Interfaces;
+using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Event = Infrastructure.Data.Event;
+using Team = Infrastructure.Data.Team;
 
 namespace Infrastructure.Repositories;
 
@@ -72,5 +75,49 @@ public class EventRepository : IEventRepository
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+
+    public async Task AddOddAsync(Odds odd)
+    {
+        await _context.Odds.AddAsync(new Odd
+        {
+            OddsValue = odd.OddsValue,
+            LastUpdate = odd.LastUpdate,
+            TeamId = odd.TeamId,
+            EventId = odd.EventId
+        });
+    }
+    
+    public async Task<Odds?> GetOddByEventAndTeamAsync(int eventId, int teamId)
+    {
+        var entityOdd = await _context.Odds
+            .FirstOrDefaultAsync(o => o.EventId == eventId && o.TeamId == teamId);
+
+        if (entityOdd == null) return null;
+
+        return new Odds
+        {
+            Id = entityOdd.Id,
+            EventId = entityOdd.EventId,
+            OddsValue = entityOdd.OddsValue,
+            LastUpdate = entityOdd.LastUpdate,
+            Team = new Domain.Entities.Team { Id = entityOdd.TeamId, TeamName = entityOdd.Team.TeamName }
+        };
+    }
+    public async Task UpdateOddAsync(int oddId, decimal newOddsValue, DateTime lastUpdate)
+    {
+        
+        var oddEntity = await _context.Odds
+            .FirstOrDefaultAsync(o => o.Id == oddId);
+
+        if (oddEntity == null)
+        {
+            throw new Exception($"Nie znaleziono kursu o Id {oddId}.");
+        }
+
+        
+        oddEntity.OddsValue = newOddsValue;
+        oddEntity.LastUpdate = lastUpdate;
+        
     }
 }

@@ -10,14 +10,18 @@ public class OddsSyncService : IOddsSyncService
     private readonly IEventRepository _eventRepository;
     private readonly ITeamRepository _teamRepository;
     
-    public OddsSyncService(IOddsApiService oddsApiService)
+    public OddsSyncService(IOddsApiService oddsApiService, ISportRepository sportRepository, IEventRepository eventRepository, ITeamRepository teamRepository)
     {
+        _sportRepository = sportRepository;
+        _eventRepository = eventRepository;
+        _teamRepository = teamRepository;
         _oddsApiService = oddsApiService;
     }
     
     public async Task SyncEventsAndOddsAsync(string sportKey)
     {
         var events = await _oddsApiService.GetEventsAndOddsBySportAsync(sportKey);
+        
 
         foreach (var ev in events)
         {
@@ -31,16 +35,22 @@ public class OddsSyncService : IOddsSyncService
 
             if (existingEventInDb == null)
             {
+                
                 existingEventInDb=new Event
                 {
                     ApiId = ev.ApiId,
                     SportId = sport.Id,
                     CommenceTime = ev.CommenceTime,
                     EventStatus = ev.EventStatus,
-                    EventName = ev.EventName,
+                    EventName = ev.EventName ?? "Unknown Event",
                     EndTime = ev.EndTime,
-                    Odds = new List<Odds>()
                 };
+                await _eventRepository.AddAsync(existingEventInDb);
+            }
+            else
+            {
+                existingEventInDb.EventStatus = ev.EventStatus;
+                existingEventInDb.EndTime = ev.EndTime;
             }
 
             foreach (var odd in ev.Odds)
@@ -55,14 +65,24 @@ public class OddsSyncService : IOddsSyncService
                     };
                     await _teamRepository.AddAsync(teamInDb);
                 }
+                var existingOdd =await _eventRepository.GetOddByEventAndTeamAsync(existingEventInDb.Id, teamInDb.Id);
+                
+                if (existingOdd != null)
+                {
+                    await _eventRepository.UpdateOddAsync(existingOdd.Id, odd.OddsValue, DateTime.UtcNow);
+                }
                 var newOdd = new Odds
                 {
                     OddsValue = odd.OddsValue,
                     LastUpdate = DateTime.UtcNow,
-                    Team = teamInDb
+                    TeamId = teamInDb.Id,
+                    EventId = existingEventInDb.Id
                 };
+                await _eventRepository.AddOddAsync(newOdd);
                 
-                existingEventInDb.Odds.Add(newOdd);
+
+
+
             }
             
             

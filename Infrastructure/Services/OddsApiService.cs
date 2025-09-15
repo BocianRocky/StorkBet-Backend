@@ -43,10 +43,11 @@ public class OddsApiService : IOddsApiService
                 ApiId = dto.Id,
                 EventStatus = "scheduled", 
                 CommenceTime = dto.CommenceTime,
+                EventName = dto.HomeTeam+" vs "+dto.AwayTeam,
                 EndTime = dto.CommenceTime.AddHours(3), 
                 Odds = new List<Odds>()
             };
-            Console.WriteLine($"Processing event: {dto.Id} - {dto.SportKey} - CommenceTime: {dto.CommenceTime} - HomeTeam: {dto.HomeTeam} - AwayTeam: {dto.AwayTeam}");
+            
             var bookmaker = dto.Bookmakers.FirstOrDefault(b => b.Key == "onexbet");
             
             var market = bookmaker?.Markets.FirstOrDefault(m => m.Key == "h2h");
@@ -77,15 +78,7 @@ public class OddsApiService : IOddsApiService
 
             
         }
-        Console.WriteLine("==== All Events ====");
-        foreach (var e in events)
-        {
-            Console.WriteLine($"Event: {e.ApiId}, CommenceTime: {e.CommenceTime}, Odds count: {e.Odds.Count}");
-            foreach (var odd in e.Odds)
-            {
-                Console.WriteLine($"    Team: {odd.Team.TeamName}, Price: {odd.OddsValue}");
-            }
-        }
+        
 
         return events;
     }

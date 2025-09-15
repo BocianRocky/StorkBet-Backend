@@ -109,10 +109,10 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.EventDate).HasColumnType("datetime");
             entity.Property(e => e.EventDateEnd).HasColumnType("datetime");
             entity.Property(e => e.EventName)
-                .HasMaxLength(20)
+                .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.EventStatus)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.SportId).HasColumnName("Sport_Id");
 
@@ -159,7 +159,6 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("Odds_pk");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.LastUpdate).HasColumnType("datetime");
             entity.Property(e => e.OddsValue).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.TeamId).HasColumnName("Team_Id");
