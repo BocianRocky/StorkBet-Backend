@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace API.Controllers;
 
@@ -18,6 +19,7 @@ public class OddsController: ControllerBase
     
     
     [HttpPost("{sportKey}")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> GetOddsForSport(string sportKey)
     {
         await _oddsSyncService.SyncEventsAndOddsAsync(sportKey);
@@ -27,6 +29,7 @@ public class OddsController: ControllerBase
     
 
     [HttpGet("{sportKey}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetEventsWithOddsBySport(string sportKey)
     {
         var eventsWithOdds = await _oddsService.GetEventsWithOddsBySportAsync(sportKey);

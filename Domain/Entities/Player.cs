@@ -11,4 +11,5 @@ public class Player
     public decimal AccountBalance { get; set; }
     public string RefreshToken { get; set; }
     public DateTime RefreshTokenExp { get; set; }
+    public Role Role { get; set; } = Role.Player;
 }

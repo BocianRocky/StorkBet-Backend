@@ -26,6 +26,7 @@ public class AuthController:ControllerBase
     }
     
     [HttpPost("register")]
+    [AllowAnonymous]
     public async Task<IActionResult> RegisterPlayer(RegisterPlayerRequestDto request)
     {
         if (await _playerRepository.ExistsByEmailAsync(request.Email)){
@@ -46,6 +47,7 @@ public class AuthController:ControllerBase
         return Ok();
     }
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login(LoginRequestDto request)
     {
         // Znajdź gracza po emailu (username to email w tym przypadku)
@@ -74,7 +76,7 @@ public class AuthController:ControllerBase
         
         // Generuj JWT token
         string secretKey = _configuration["SecretKey"] ?? "ThisIsAVeryLongSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong123456789";
-        string accessToken = SecurityHelper.GenerateJwtToken(player.Id, player.Email, secretKey);
+        string accessToken = SecurityHelper.GenerateJwtToken(player.Id, player.Email, player.Role.ToString(), secretKey);
 
         var response = new LoginResponseDto
         {
@@ -93,6 +95,7 @@ public class AuthController:ControllerBase
     
     
     [HttpPost("refresh")]
+    [AllowAnonymous]
     public async Task<IActionResult> Refresh(RefreshTokenRequestDto request)
     {
         try
@@ -120,7 +123,7 @@ public class AuthController:ControllerBase
 
             // Generuj nowy JWT token
             string secretKey = _configuration["SecretKey"] ?? "ThisIsAVeryLongSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong123456789";
-            string accessToken = SecurityHelper.GenerateJwtToken(player.Id, player.Email, secretKey);
+            string accessToken = SecurityHelper.GenerateJwtToken(player.Id, player.Email, player.Role.ToString(), secretKey);
 
             var response = new LoginResponseDto
             {

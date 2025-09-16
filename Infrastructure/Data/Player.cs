@@ -19,6 +19,8 @@ public partial class Player
 
     public decimal AccountBalance { get; set; }
 
+    public int Role { get; set; }
+
     public string RefreshToken { get; set; } = null!;
 
     public DateTime RefreshTokenExp { get; set; }

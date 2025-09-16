@@ -2,6 +2,7 @@ namespace API.Controllers;
 using Application.Interfaces;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -17,6 +18,7 @@ public class SportsController:ControllerBase
     }
 
     [HttpPost("sync")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Sync()
     {
         await _sportSyncService.SyncSportsAsync();
@@ -24,12 +26,14 @@ public class SportsController:ControllerBase
     }
 
     [HttpGet("all")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         var sports = await _sportService.GetAllSportsAsync();
         return Ok(sports);
     }
     [HttpGet("grouped")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetGroupedSports()
     {
         var groupedSports = await _sportService.GetGroupedSportsAsync();

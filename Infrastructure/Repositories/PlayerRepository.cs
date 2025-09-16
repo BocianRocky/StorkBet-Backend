@@ -26,7 +26,8 @@ public class PlayerRepository : IPlayerRepository
             Password = registerPlayer.Password,
             Salt = registerPlayer.Salt,
             RefreshToken = registerPlayer.RefreshToken,
-            RefreshTokenExp = registerPlayer.RefreshTokenExp
+            RefreshTokenExp = registerPlayer.RefreshTokenExp,
+            Role = (int)Role.Player
         };
 
         _context.Players.Add(player);
@@ -55,7 +56,8 @@ public class PlayerRepository : IPlayerRepository
             Salt = dbPlayer.Salt,
             AccountBalance = dbPlayer.AccountBalance,
             RefreshToken = dbPlayer.RefreshToken,
-            RefreshTokenExp = dbPlayer.RefreshTokenExp
+            RefreshTokenExp = dbPlayer.RefreshTokenExp,
+            Role = (Role)dbPlayer.Role
         };
     }
 
@@ -76,7 +78,8 @@ public class PlayerRepository : IPlayerRepository
             Salt = dbPlayer.Salt,
             AccountBalance = dbPlayer.AccountBalance,
             RefreshToken = dbPlayer.RefreshToken,
-            RefreshTokenExp = dbPlayer.RefreshTokenExp
+            RefreshTokenExp = dbPlayer.RefreshTokenExp,
+            Role = (Role)dbPlayer.Role
         };
     }
 

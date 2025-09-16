@@ -54,7 +54,7 @@ public static class SecurityHelper
             }
         }
 
-        public static string GenerateJwtToken(int userId, string email, string secret)
+        public static string GenerateJwtToken(int userId, string email, string role, string secret)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(secret);
@@ -71,7 +71,8 @@ public static class SecurityHelper
                 {
                     new Claim(ClaimTypes.Name, userId.ToString()),
                     new Claim(ClaimTypes.Email, email),
-                    new Claim("userId", userId.ToString())
+                    new Claim("userId", userId.ToString()),
+                    new Claim(ClaimTypes.Role, role)
                 }),
                 Expires = DateTime.UtcNow.AddHours(1), // Token ważny przez 1 godzinę
                 Issuer = "https://localhost:5001",

@@ -159,6 +159,8 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("Odds_pk");
 
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+
             entity.Property(e => e.LastUpdate).HasColumnType("datetime");
             entity.Property(e => e.OddsValue).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.TeamId).HasColumnName("Team_Id");
