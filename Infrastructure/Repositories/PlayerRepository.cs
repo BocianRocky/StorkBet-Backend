@@ -94,4 +94,23 @@ public class PlayerRepository : IPlayerRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<Player?> GetByIdAsync(int playerId)
+    {
+        var dbPlayer = await _context.Players.FirstOrDefaultAsync(p => p.Id == playerId);
+        if (dbPlayer == null) return null;
+        return new Player
+        {
+            Id = dbPlayer.Id,
+            Name = dbPlayer.Name,
+            LastName = dbPlayer.LastName,
+            Email = dbPlayer.Email,
+            Password = dbPlayer.Password,
+            Salt = dbPlayer.Salt,
+            AccountBalance = dbPlayer.AccountBalance,
+            RefreshToken = dbPlayer.RefreshToken,
+            RefreshTokenExp = dbPlayer.RefreshTokenExp,
+            Role = (Role)dbPlayer.Role
+        };
+    }
 }
