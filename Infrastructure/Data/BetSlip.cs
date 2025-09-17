@@ -11,7 +11,7 @@ public partial class BetSlip
 
     public decimal Amount { get; set; }
 
-    public byte[] Date { get; set; } = null!;
+    public DateTime Date { get; set; }
 
     public int? Wynik { get; set; }
 

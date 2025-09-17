@@ -68,9 +68,7 @@ public partial class AppDbContext : DbContext
             entity.ToTable("BetSlip");
 
             entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.Date)
-                .IsRowVersion()
-                .IsConcurrencyToken();
+            entity.Property(e => e.Date).HasColumnType("datetime");
             entity.Property(e => e.Wynik).HasColumnName("wynik");
 
             entity.HasOne(d => d.Player).WithMany(p => p.BetSlips)
@@ -83,6 +81,7 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("BetSlipOdds_pk");
 
+            entity.Property(e => e.ConstOdd).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.OddsId).HasColumnName("Odds_Id");
             entity.Property(e => e.Wynik).HasColumnName("wynik");
 
@@ -158,8 +157,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Odd>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("Odds_pk");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
 
             entity.Property(e => e.LastUpdate).HasColumnType("datetime");
             entity.Property(e => e.OddsValue).HasColumnType("decimal(10, 2)");

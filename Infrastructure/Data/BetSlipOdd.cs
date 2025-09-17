@@ -11,6 +11,8 @@ public partial class BetSlipOdd
 
     public int? Wynik { get; set; }
 
+    public decimal ConstOdd { get; set; }
+
     public int OddsId { get; set; }
 
     public virtual BetSlip BetSlip { get; set; } = null!;
