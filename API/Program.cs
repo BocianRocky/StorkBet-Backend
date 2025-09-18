@@ -22,6 +22,7 @@ builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<ITeamRepository, TeamRepository>();
 builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
 builder.Services.AddScoped<IBetSlipRepository, BetSlipRepository>();
+builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
 
 // Services
 builder.Services.AddScoped<ISportService, SportService>();

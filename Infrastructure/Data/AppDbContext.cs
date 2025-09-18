@@ -230,6 +230,15 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Promotion");
 
+            entity.Property(e => e.BonusType)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.BonusValue).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.MaxDeposit).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.MinDeposit).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PromoCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
             entity.Property(e => e.PromotionName)
                 .HasMaxLength(20)
                 .IsUnicode(false);
