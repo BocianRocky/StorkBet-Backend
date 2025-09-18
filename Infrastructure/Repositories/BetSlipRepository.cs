@@ -51,12 +51,16 @@ public class BetSlipRepository : IBetSlipRepository
             throw new KeyNotFoundException("Some odds were not found");
         }
 
+        // Calculate total odds upfront to compute PotentialWin
+        var totalOdds = odds.Aggregate(1m, (acc, o) => acc * o.OddsValue);
+
         var betSlip = new BetSlip
         {
             PlayerId = playerId,
             Amount = amount,
             Date = DateTime.UtcNow,
-            Wynik = null
+            Wynik = null,
+            PotentialWin = amount * totalOdds
         };
 
         await _dbContext.BetSlips.AddAsync(betSlip);
@@ -79,6 +83,27 @@ public class BetSlipRepository : IBetSlipRepository
         await transaction.CommitAsync();
 
         return betSlip.Id;
+    }
+
+    public async Task<IEnumerable<object>> GetPlayerBetSlipsAsync(int playerId)
+    {
+        return await _dbContext.BetSlips
+            .Where(bs => bs.PlayerId == playerId)
+            .Include(bs => bs.BetSlipOdds)
+            .OrderByDescending(bs => bs.Date)
+            .ToListAsync();
+    }
+
+    public async Task<object?> GetBetSlipDetailsAsync(int betSlipId, int playerId)
+    {
+        return await _dbContext.BetSlips
+            .Include(bs => bs.BetSlipOdds)
+                .ThenInclude(bso => bso.Odds)
+                    .ThenInclude(o => o.Event)
+            .Include(bs => bs.BetSlipOdds)
+                .ThenInclude(bso => bso.Odds)
+                    .ThenInclude(o => o.Team)
+            .FirstOrDefaultAsync(bs => bs.Id == betSlipId && bs.PlayerId == playerId);
     }
 }
 

@@ -15,6 +15,8 @@ public partial class BetSlip
 
     public int? Wynik { get; set; }
 
+    public decimal? PotentialWin { get; set; }
+
     public virtual ICollection<BetSlipOdd> BetSlipOdds { get; set; } = new List<BetSlipOdd>();
 
     public virtual Player Player { get; set; } = null!;

@@ -69,6 +69,7 @@ public partial class AppDbContext : DbContext
 
             entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Date).HasColumnType("datetime");
+            entity.Property(e => e.PotentialWin).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Wynik).HasColumnName("wynik");
 
             entity.HasOne(d => d.Player).WithMany(p => p.BetSlips)
