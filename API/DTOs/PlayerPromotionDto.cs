@@ -12,6 +12,8 @@ public class PlayerPromotionDto
     public decimal? MinDeposit { get; set; }
     public decimal? MaxDeposit { get; set; }
     public string Availability { get; set; } = string.Empty;
+    
+    public string Image { get; set; } = string.Empty;
 }
 
 

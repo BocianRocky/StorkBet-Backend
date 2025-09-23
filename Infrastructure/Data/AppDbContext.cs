@@ -234,6 +234,9 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.BonusValue).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Image)
+                .HasMaxLength(70)
+                .IsUnicode(false);
             entity.Property(e => e.MaxDeposit).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.MinDeposit).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.PromoCode)

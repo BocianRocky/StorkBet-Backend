@@ -25,7 +25,8 @@ public class PromotionRepository : IPromotionRepository
         decimal bonusValue,
         string? promoCode,
         decimal? minDeposit,
-        decimal? maxDeposit)
+        decimal? maxDeposit,
+        string image)
     {
         var promotion = new Promotion
         {
@@ -36,7 +37,8 @@ public class PromotionRepository : IPromotionRepository
             BonusValue = bonusValue,
             PromoCode = promoCode,
             MinDeposit = minDeposit,
-            MaxDeposit = maxDeposit
+            MaxDeposit = maxDeposit,
+            Image = image
         };
 
         await _dbContext.Promotions.AddAsync(promotion);
@@ -58,7 +60,8 @@ public class PromotionRepository : IPromotionRepository
                 BonusValue = p.BonusValue,
                 PromoCode = p.PromoCode,
                 MinDeposit = p.MinDeposit,
-                MaxDeposit = p.MaxDeposit
+                MaxDeposit = p.MaxDeposit,
+                Image = p.Image
             })
             .ToListAsync();
     }
@@ -78,7 +81,8 @@ public class PromotionRepository : IPromotionRepository
                 BonusValue = p.BonusValue,
                 PromoCode = p.PromoCode,
                 MinDeposit = p.MinDeposit,
-                MaxDeposit = p.MaxDeposit
+                MaxDeposit = p.MaxDeposit,
+                Image = p.Image
             })
             .ToListAsync();
     }
@@ -98,7 +102,8 @@ public class PromotionRepository : IPromotionRepository
                 BonusValue = p.BonusValue,
                 PromoCode = p.PromoCode,
                 MinDeposit = p.MinDeposit,
-                MaxDeposit = p.MaxDeposit
+                MaxDeposit = p.MaxDeposit,
+                Image = p.Image
             })
             .ToListAsync();
     }
@@ -119,7 +124,8 @@ public class PromotionRepository : IPromotionRepository
                 PromoCode = ap.Promotion.PromoCode,
                 MinDeposit = ap.Promotion.MinDeposit,
                 MaxDeposit = ap.Promotion.MaxDeposit,
-                Availability = ap.Availability
+                Availability = ap.Availability,
+                Image = ap.Promotion.Image
             })
             .ToListAsync();
     }

@@ -23,5 +23,7 @@ public partial class Promotion
 
     public decimal? MaxDeposit { get; set; }
 
+    public string Image { get; set; } = null!;
+
     public virtual ICollection<AvailablePromotion> AvailablePromotions { get; set; } = new List<AvailablePromotion>();
 }

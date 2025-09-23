@@ -11,6 +11,7 @@ public class PromotionReadModel
     public string? PromoCode { get; set; }
     public decimal? MinDeposit { get; set; }
     public decimal? MaxDeposit { get; set; }
+    public string Image { get; set; } = string.Empty;
 }
 
 public class PlayerPromotionReadModel : PromotionReadModel

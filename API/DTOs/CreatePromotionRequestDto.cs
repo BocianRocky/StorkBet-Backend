@@ -27,6 +27,9 @@ public class CreatePromotionRequestDto
     public decimal? MinDeposit { get; set; }
 
     public decimal? MaxDeposit { get; set; }
+    
+    [MaxLength(70)]
+    public string Image { get; set; }
 }
 
 
