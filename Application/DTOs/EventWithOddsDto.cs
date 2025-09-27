@@ -9,6 +9,7 @@ public class EventWithOddsDto
 
 public class OddDto
 {
+    public int OddId { get; set; }
     public string TeamName { get; set; } = string.Empty;
     public decimal OddsValue { get; set; }
 }

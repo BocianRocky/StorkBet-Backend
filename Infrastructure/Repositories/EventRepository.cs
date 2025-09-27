@@ -138,6 +138,7 @@ public class EventRepository : IEventRepository
                 EventDate = e.EventDate,
                 Odds = e.Odds.Select(o => new OddDto
                 {
+                    OddId = o.Id,
                     TeamName = o.Team.TeamName,
                     OddsValue = o.OddsValue
                 }).ToList()
