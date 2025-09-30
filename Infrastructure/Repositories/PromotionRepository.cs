@@ -26,7 +26,9 @@ public class PromotionRepository : IPromotionRepository
         string? promoCode,
         decimal? minDeposit,
         decimal? maxDeposit,
-        string image)
+        string image,
+        string description)
+        
     {
         var promotion = new Promotion
         {
@@ -38,7 +40,9 @@ public class PromotionRepository : IPromotionRepository
             PromoCode = promoCode,
             MinDeposit = minDeposit,
             MaxDeposit = maxDeposit,
-            Image = image
+            Image = image,
+            Description = description
+            
         };
 
         await _dbContext.Promotions.AddAsync(promotion);
@@ -61,7 +65,8 @@ public class PromotionRepository : IPromotionRepository
                 PromoCode = p.PromoCode,
                 MinDeposit = p.MinDeposit,
                 MaxDeposit = p.MaxDeposit,
-                Image = p.Image
+                Image = p.Image,
+                Description = p.Description
             })
             .ToListAsync();
     }
@@ -82,7 +87,8 @@ public class PromotionRepository : IPromotionRepository
                 PromoCode = p.PromoCode,
                 MinDeposit = p.MinDeposit,
                 MaxDeposit = p.MaxDeposit,
-                Image = p.Image
+                Image = p.Image,
+                Description = p.Description
             })
             .ToListAsync();
     }
@@ -103,7 +109,8 @@ public class PromotionRepository : IPromotionRepository
                 PromoCode = p.PromoCode,
                 MinDeposit = p.MinDeposit,
                 MaxDeposit = p.MaxDeposit,
-                Image = p.Image
+                Image = p.Image,
+                Description = p.Description
             })
             .ToListAsync();
     }
@@ -125,7 +132,8 @@ public class PromotionRepository : IPromotionRepository
                 MinDeposit = ap.Promotion.MinDeposit,
                 MaxDeposit = ap.Promotion.MaxDeposit,
                 Availability = ap.Availability,
-                Image = ap.Promotion.Image
+                Image = ap.Promotion.Image,
+                Description = ap.Promotion.Description
             })
             .ToListAsync();
     }

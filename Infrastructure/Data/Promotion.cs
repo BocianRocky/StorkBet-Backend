@@ -25,5 +25,7 @@ public partial class Promotion
 
     public string Image { get; set; } = null!;
 
+    public string Description { get; set; } = null!;
+
     public virtual ICollection<AvailablePromotion> AvailablePromotions { get; set; } = new List<AvailablePromotion>();
 }

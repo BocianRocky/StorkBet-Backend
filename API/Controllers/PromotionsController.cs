@@ -41,7 +41,8 @@ public class PromotionsController : ControllerBase
             request.PromoCode,
             request.MinDeposit,
             request.MaxDeposit,
-            request.Image
+            request.Image,
+            request.Description
             );
         return Ok(new { id });
     }
@@ -63,7 +64,8 @@ public class PromotionsController : ControllerBase
             PromoCode = p.PromoCode,
             MinDeposit = p.MinDeposit,
             MaxDeposit = p.MaxDeposit,
-            Image = p.Image
+            Image = p.Image,
+            Description = p.Description
         }).ToList();
 
         return Ok(result);
@@ -87,7 +89,8 @@ public class PromotionsController : ControllerBase
             PromoCode = p.PromoCode,
             MinDeposit = p.MinDeposit,
             MaxDeposit = p.MaxDeposit,
-            Image = p.Image
+            Image = p.Image,
+            Description = p.Description
         }).ToList();
 
         return Ok(result);
@@ -111,7 +114,8 @@ public class PromotionsController : ControllerBase
             PromoCode = p.PromoCode,
             MinDeposit = p.MinDeposit,
             MaxDeposit = p.MaxDeposit,
-            Image = p.Image
+            Image = p.Image,
+            Description = p.Description
         }).ToList();
 
         return Ok(result);
@@ -139,7 +143,8 @@ public class PromotionsController : ControllerBase
             MinDeposit = p.MinDeposit,
             MaxDeposit = p.MaxDeposit,
             Availability = p.Availability,
-            Image = p.Image
+            Image = p.Image,
+            Description = p.Description
         }).ToList();
 
         return Ok(result);

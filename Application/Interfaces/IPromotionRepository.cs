@@ -15,7 +15,8 @@ public interface IPromotionRepository
         string? promoCode,
         decimal? minDeposit,
         decimal? maxDeposit,
-        string image);
+        string image,
+        string description);
     Task<IEnumerable<PromotionReadModel>> GetAllAsync();
     Task<IEnumerable<PromotionReadModel>> GetTodayAsync(DateOnly today);
     Task<IEnumerable<PromotionReadModel>> GetAvailableAsync(DateOnly today);
