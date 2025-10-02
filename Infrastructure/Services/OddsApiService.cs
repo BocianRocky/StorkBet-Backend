@@ -1,8 +1,8 @@
 using System.Net.Http.Json;
 using Application.Config;
+using Application.DTOs;
 using Application.Interfaces;
 using Domain.Entities;
-
 using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Services;
@@ -81,5 +81,12 @@ public class OddsApiService : IOddsApiService
         
 
         return events;
+    }
+
+    public async Task<IEnumerable<ScoreApiResponseDto>> GetScoresBySportAsync(string sportKey, int daysFrom = 3)
+    {
+        var url = $"https://api.the-odds-api.com/v4/sports/{sportKey}/scores/?daysFrom={daysFrom}&apiKey={_options.ApiKey}";
+        var scores = await _httpClient.GetFromJsonAsync<List<ScoreApiResponseDto>>(url);
+        return scores ?? new List<ScoreApiResponseDto>();
     }
 }

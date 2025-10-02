@@ -17,6 +17,8 @@ public partial class Event
 
     public DateTime EventDateEnd { get; set; }
 
+    public bool? IsCompleted { get; set; }
+
     public int SportId { get; set; }
 
     public virtual ICollection<Odd> Odds { get; set; } = new List<Odd>();

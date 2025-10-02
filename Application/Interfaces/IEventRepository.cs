@@ -13,6 +13,9 @@ public interface IEventRepository
     
     Task<Odds?> GetOddByEventAndTeamAsync(int eventId, int teamId);
     Task UpdateOddAsync(int oddId, decimal newOddsValue, DateTime lastUpdate);
+    Task UpdateOddScoreAsync(int oddId, int score);
     
     Task<List<EventWithOddsDto>> GetEventsWithOddsBySportKeyAsync(string sportKey);
+
+    Task<Event?>GetByHomeAwayTeamDateAsync(string homeTeam, string awayTeam, DateTime commenceTime);
 }

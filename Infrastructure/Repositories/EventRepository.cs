@@ -23,7 +23,7 @@ public class EventRepository : IEventRepository
             .Include(e => e.Odds)
             .ThenInclude(o => o.Team)
             .FirstOrDefaultAsync(e => e.ApiId == apiId);
-
+        
         if (ev == null) return null;
         return new Domain.Entities.Event
         {
@@ -121,6 +121,19 @@ public class EventRepository : IEventRepository
         oddEntity.LastUpdate = lastUpdate;
         
     }
+
+    public async Task UpdateOddScoreAsync(int oddId, int score)
+    {
+        var oddEntity = await _context.Odds
+            .FirstOrDefaultAsync(o => o.Id == oddId);
+
+        if (oddEntity == null)
+        {
+            throw new Exception($"Nie znaleziono kursu o Id {oddId}.");
+        }
+
+        oddEntity.Wynik = score;
+    }
     
 
     public async Task<List<EventWithOddsDto>> GetEventsWithOddsBySportKeyAsync(string sportKey)
@@ -144,5 +157,44 @@ public class EventRepository : IEventRepository
                 }).ToList()
             })
             .ToListAsync();
+    }
+    public async Task<Domain.Entities.Event?> GetByHomeAwayTeamDateAsync(string homeTeam, string awayTeam, DateTime commenceTime)
+    {
+        // Porównujemy tylko datę (bez godziny) i nazwy drużyn
+        var commenceDate = commenceTime.Date;
+        
+        var ev = await _context.Events
+            .Include(e => e.Odds)
+            .ThenInclude(o => o.Team)
+            .FirstOrDefaultAsync(e => e.EventDate.Date == commenceDate &&
+                                      e.Odds.Any(o => o.Team.TeamName == homeTeam) &&
+                                      e.Odds.Any(o => o.Team.TeamName == awayTeam));
+        
+        if (ev == null) 
+        {
+            return null;
+        }
+        
+        Console.WriteLine("Znaleziono wydarzenie w bazie danych dla drużyn: " + ev.EventName +  " dnia " + ev.EventDate);
+        return new Domain.Entities.Event
+        {
+            Id = ev.Id,
+            ApiId = ev.ApiId,
+            EventName = ev.EventName,
+            EventStatus = ev.EventStatus,
+            CommenceTime = ev.EventDate,
+            EndTime = ev.EventDateEnd,
+            Odds = ev.Odds.Select(o => new Domain.Entities.Odds
+            {
+                Id = o.Id,
+                OddsValue = o.OddsValue,
+                LastUpdate = o.LastUpdate,
+                Team = new Domain.Entities.Team
+                {
+                    Id = o.Team.Id,
+                    TeamName = o.Team.TeamName
+                }
+            }).ToList()
+        };
     }
 }
