@@ -38,6 +38,26 @@ public class PlayersController : ControllerBase
             accountBalance = player.AccountBalance
         });
     }
+    [HttpGet("profile")]
+    [Authorize(Policy = "PlayerOnly")]
+    public async Task<IActionResult> GetMyProfileDetails()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst("userId")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
+
+        if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
+
+        var player = await _playerRepository.GetByIdAsync(userId);
+        if (player == null) return NotFound();
+
+        return Ok(new
+        {
+            name = player.Name,
+            lastName = player.LastName,
+            email = player.Email,
+            accountBalance = player.AccountBalance
+        });
+    }
 
     [HttpPost("betslips")]
     [Authorize(Policy = "PlayerOnly")]
