@@ -105,6 +105,73 @@ public class BetSlipRepository : IBetSlipRepository
                     .ThenInclude(o => o.Team)
             .FirstOrDefaultAsync(bs => bs.Id == betSlipId && bs.PlayerId == playerId);
     }
+
+
+    public async Task CheckAndUpdateAllBetSlipsResultsAsync()
+    {
+        // Znajdź wszystkie betslipy, które jeszcze nie mają wyniku
+        var pendingBetSlips = await _dbContext.BetSlips
+            .Include(bs => bs.BetSlipOdds)
+                .ThenInclude(bso => bso.Odds)
+                    .ThenInclude(o => o.Event)
+            .Where(bs => bs.Wynik == null)
+            .ToListAsync();
+
+        foreach (var betSlip in pendingBetSlips)
+        {
+            // Sprawdź czy wszystkie eventy w betslipie są zakończone
+            var allEventsCompleted = betSlip.BetSlipOdds.All(bso => 
+                bso.Odds.Event.IsCompleted == true);
+
+            if (allEventsCompleted)
+            {
+                // Sprawdź wyniki dla każdego odd w betslipie
+                foreach (var betSlipOdd in betSlip.BetSlipOdds)
+                {
+                    if (!betSlipOdd.Wynik.HasValue)
+                    {
+                        // Sprawdź czy drużyna wygrała (porównaj wyniki)
+                        var teamResult = betSlipOdd.Odds.Wynik ?? 0;
+                        var otherOddsInEvent = await _dbContext.Odds
+                            .Where(o => o.EventId == betSlipOdd.Odds.EventId && o.Id != betSlipOdd.Odds.Id)
+                            .ToListAsync();
+
+                        bool teamWon = true;
+                        foreach (var otherOdd in otherOddsInEvent)
+                        {
+                            if ((otherOdd.Wynik ?? 0) >= teamResult)
+                            {
+                                teamWon = false;
+                                break;
+                            }
+                        }
+
+                        betSlipOdd.Wynik = teamWon ? 1 : 0;
+                    }
+                }
+
+                // Sprawdź czy wszystkie oddsy mają wyniki
+                var allOddsHaveResults = betSlip.BetSlipOdds.All(bso => bso.Wynik.HasValue);
+                
+                if (allOddsHaveResults)
+                {
+                    // Sprawdź czy wszystkie oddsy są wygrane (Wynik = 1)
+                    var allOddsWon = betSlip.BetSlipOdds.All(bso => bso.Wynik == 1);
+                    
+                    if (allOddsWon)
+                    {
+                        betSlip.Wynik = 1; // Cały betslip wygrany
+                    }
+                    else
+                    {
+                        betSlip.Wynik = 0; // Cały betslip przegrany (przynajmniej jeden odd przegrany)
+                    }
+                }
+            }
+        }
+
+        await _dbContext.SaveChangesAsync();
+    }
 }
 
 

@@ -8,15 +8,18 @@ public class ScoreSyncService : IScoreSyncService
     private readonly IOddsApiService _oddsApiService;
     private readonly IEventRepository _eventRepository;
     private readonly ISportRepository _sportRepository;
+    private readonly IBetSlipRepository _betSlipRepository;
 
     public ScoreSyncService(
         IOddsApiService oddsApiService,
         IEventRepository eventRepository,
-        ISportRepository sportRepository)
+        ISportRepository sportRepository,
+        IBetSlipRepository betSlipRepository)
     {
         _oddsApiService = oddsApiService;
         _eventRepository = eventRepository;
         _sportRepository = sportRepository;
+        _betSlipRepository = betSlipRepository;
     }
 
     public async Task SyncScoresBySportAsync(string sportKey, int daysFrom = 3)
@@ -27,6 +30,7 @@ public class ScoreSyncService : IScoreSyncService
         
         foreach (var scoreResponse in scores)
         {
+            
             if (!scoreResponse.Completed)
             {
                 continue;
@@ -39,7 +43,7 @@ public class ScoreSyncService : IScoreSyncService
                 continue;
             }
             
-            
+            Console.WriteLine("wydarzenie: "+eventEntity.EventName);
 
             // Aktualizuj wyniki dla każdego zespołu
             foreach (var score in scoreResponse.Scores)
@@ -56,16 +60,22 @@ public class ScoreSyncService : IScoreSyncService
                     await _eventRepository.UpdateOddScoreAsync(teamOdds.Id, scoreValue);
                 }
             }
+            
+            // Oznacz event jako zakończony po zaktualizowaniu wyników
+            await _eventRepository.MarkEventAsCompletedAsync(eventEntity.Id);
         }
 
         await _eventRepository.SaveChangesAsync();
+        
+        // Po zakończeniu synchronizacji wyników, sprawdź betslipy
+        await _betSlipRepository.CheckAndUpdateAllBetSlipsResultsAsync();
     }
 
     public async Task SyncScoresForAllSportsAsync(int daysFrom = 3)
     {
         // Pobierz wszystkie sporty z API
         var sports = await _oddsApiService.GetSportsAsync();
-
+        
         foreach (var sport in sports)
         {
             try

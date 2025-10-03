@@ -197,4 +197,16 @@ public class EventRepository : IEventRepository
             }).ToList()
         };
     }
+
+    public async Task MarkEventAsCompletedAsync(int eventId)
+    {
+        var ev = await _context.Events
+            .FirstOrDefaultAsync(e => e.Id == eventId);
+        
+        if (ev != null)
+        {
+            ev.IsCompleted = true;
+            _context.Events.Update(ev);
+        }
+    }
 }

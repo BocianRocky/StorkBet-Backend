@@ -18,4 +18,6 @@ public interface IEventRepository
     Task<List<EventWithOddsDto>> GetEventsWithOddsBySportKeyAsync(string sportKey);
 
     Task<Event?>GetByHomeAwayTeamDateAsync(string homeTeam, string awayTeam, DateTime commenceTime);
+    
+    Task MarkEventAsCompletedAsync(int eventId);
 }
