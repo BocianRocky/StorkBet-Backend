@@ -142,7 +142,9 @@ public class PlayersController : ControllerBase
                 {
                     Id = bso.Odds.Event.Id,
                     Name = bso.Odds.Event.EventName,
-                    Date = bso.Odds.Event.EventDate
+                    Date = bso.Odds.Event.EventDate,
+                    Group = bso.Odds.Event.Sport.Group,
+                    Title = bso.Odds.Event.Sport.Title
                 },
                 Team = new TeamDetailsDto
                 {

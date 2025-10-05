@@ -100,6 +100,7 @@ public class BetSlipRepository : IBetSlipRepository
             .Include(bs => bs.BetSlipOdds)
                 .ThenInclude(bso => bso.Odds)
                     .ThenInclude(o => o.Event)
+                        .ThenInclude(e => e.Sport)
             .Include(bs => bs.BetSlipOdds)
                 .ThenInclude(bso => bso.Odds)
                     .ThenInclude(o => o.Team)
