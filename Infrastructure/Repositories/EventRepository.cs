@@ -95,7 +95,7 @@ public class EventRepository : IEventRepository
             .FirstOrDefaultAsync(o => o.EventId == eventId && o.TeamId == teamId);
 
         if (entityOdd == null) return null;
-
+        
         return new Odds
         {
             Id = entityOdd.Id,

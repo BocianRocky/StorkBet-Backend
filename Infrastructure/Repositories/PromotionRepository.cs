@@ -137,6 +137,39 @@ public class PromotionRepository : IPromotionRepository
             })
             .ToListAsync();
     }
+
+    public async Task<int> AssignPromotionToPlayerByCodeAsync(int playerId, string promoCode)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+
+        var promotion = await _dbContext.Promotions
+            .FirstOrDefaultAsync(p => p.PromoCode == promoCode && p.DateStart <= today && p.DateEnd >= today);
+
+        if (promotion == null)
+        {
+            throw new KeyNotFoundException("Promotion code is invalid or not active");
+        }
+
+        var alreadyAssigned = await _dbContext.AvailablePromotions
+            .AnyAsync(ap => ap.PlayerId == playerId && ap.PromotionId == promotion.Id);
+
+        if (alreadyAssigned)
+        {
+            throw new InvalidOperationException("Promotion already assigned to this player");
+        }
+
+        var assignment = new AvailablePromotion
+        {
+            PlayerId = playerId,
+            PromotionId = promotion.Id,
+            Availability = "available"
+        };
+
+        await _dbContext.AvailablePromotions.AddAsync(assignment);
+        await _dbContext.SaveChangesAsync();
+
+        return assignment.Id;
+    }
 }
 
 

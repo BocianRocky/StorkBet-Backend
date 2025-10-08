@@ -149,6 +149,39 @@ public class PromotionsController : ControllerBase
 
         return Ok(result);
     }
+
+    public class RedeemPromotionRequest
+    {
+        public string Code { get; set; } = string.Empty;
+    }
+
+    [HttpPost("redeem")]
+    [Authorize(Policy = "PlayerOnly")]
+    public async Task<IActionResult> RedeemPromotion([FromBody] RedeemPromotionRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Code))
+        {
+            return BadRequest(new { message = "Promotion code is required" });
+        }
+
+        var userIdClaim = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst("userId")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
+        if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
+
+        try
+        {
+            var assignmentId = await _promotionRepository.AssignPromotionToPlayerByCodeAsync(userId, request.Code);
+            return Ok(new { id = assignmentId });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }
 
 
