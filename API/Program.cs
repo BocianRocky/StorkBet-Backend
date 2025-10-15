@@ -31,6 +31,7 @@ builder.Services.AddScoped<IOddsApiService, OddsApiService>();
 builder.Services.AddScoped<IOddsSyncService, OddsSyncService>();
 builder.Services.AddScoped<IOddsService, OddsService>();
 builder.Services.AddScoped<IScoreSyncService, ScoreSyncService>();
+builder.Services.AddScoped<IAdminStatisticsService, Infrastructure.Services.AdminStatisticsService>();
 
 // HttpClient dla OddsApiService
 builder.Services.AddHttpClient<IOddsApiService, OddsApiService>();
