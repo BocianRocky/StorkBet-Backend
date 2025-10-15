@@ -10,4 +10,5 @@ public interface IAdminStatisticsService
     Task<IEnumerable<MonthlyAverageStakeDto>> GetMonthlyAverageStakeAsync();
     Task<IEnumerable<SportCouponsDto>> GetSportCouponsAsync();
     Task<IEnumerable<SportEffectivenessDto>> GetSportEffectivenessAsync();
+    Task<IEnumerable<PlayerProfitDto>> GetPlayersProfitAsync();
 }

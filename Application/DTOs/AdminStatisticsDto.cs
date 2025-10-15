@@ -44,3 +44,12 @@ public class SportEffectivenessDto
     public int WonBets { get; set; }
     public decimal EffectivenessPercent { get; set; }
 }
+
+public class PlayerProfitDto
+{
+    public int PlayerId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public decimal AccountBalance { get; set; }
+    public decimal Profit { get; set; }
+}

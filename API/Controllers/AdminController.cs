@@ -152,4 +152,21 @@ public class AdminController : ControllerBase
             return StatusCode(500, $"Błąd podczas pobierania wszystkich statystyk: {ex.Message}");
         }
     }
+
+    /// <summary>
+    /// Pobiera ranking graczy po zysku
+    /// </summary>
+    [HttpGet("players-profit")]
+    public async Task<ActionResult<IEnumerable<PlayerProfitDto>>> GetPlayersProfit()
+    {
+        try
+        {
+            var result = await _adminStatisticsService.GetPlayersProfitAsync();
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Błąd podczas pobierania zysków graczy: {ex.Message}");
+        }
+    }
 }

@@ -149,4 +149,30 @@ public class AdminStatisticsService : IAdminStatisticsService
 
         return result;
     }
+
+    public async Task<IEnumerable<PlayerProfitDto>> GetPlayersProfitAsync()
+    {
+        var sql = @"
+SELECT
+    p.Id AS PlayerId,
+    p.Name,
+    p.LastName,
+    p.AccountBalance,
+    ROUND(
+        ISNULL(SUM(CASE WHEN bs.wynik = 1 THEN bs.PotentialWin ELSE 0 END), 0)
+        - ISNULL(SUM(bs.Amount), 0),
+        2
+    ) AS Profit
+FROM Player p
+LEFT JOIN BetSlip bs ON bs.PlayerId = p.Id
+WHERE Role = 2
+GROUP BY p.Id, p.Name, p.LastName, p.AccountBalance
+ORDER BY Profit DESC";
+
+        var result = await _context.Database
+            .SqlQueryRaw<PlayerProfitDto>(sql)
+            .ToListAsync();
+
+        return result;
+    }
 }
