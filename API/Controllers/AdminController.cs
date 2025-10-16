@@ -169,4 +169,22 @@ public class AdminController : ControllerBase
             return StatusCode(500, $"Błąd podczas pobierania zysków graczy: {ex.Message}");
         }
     }
+
+    /// <summary>
+    /// Pobiera szczegóły wybranego gracza (statystyki i transakcje)
+    /// </summary>
+    [HttpGet("players-profit/{playerId:int}")]
+    public async Task<ActionResult<PlayerDetailsDto>> GetPlayerDetails([FromRoute] int playerId)
+    {
+        try
+        {
+            var result = await _adminStatisticsService.GetPlayerDetailsAsync(playerId);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Błąd podczas pobierania szczegółów gracza: {ex.Message}");
+        }
+    }
 }

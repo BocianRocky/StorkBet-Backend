@@ -175,4 +175,58 @@ ORDER BY Profit DESC";
 
         return result;
     }
+
+    public async Task<PlayerDetailsDto?> GetPlayerDetailsAsync(int playerId)
+    {
+        var sql = @"
+SELECT
+    p.Id AS PlayerId,
+    p.Name,
+    p.LastName,
+    p.Email,
+    p.AccountBalance,
+
+    COUNT(DISTINCT bs.Id) AS BetsCount,
+    COUNT(CASE WHEN bs.wynik = 1 THEN 1 END) AS WonBets,
+    COUNT(CASE WHEN bs.wynik = 0 THEN 1 END) AS LostBets,
+
+    CAST(
+        ROUND(
+            CAST(COUNT(CASE WHEN bs.wynik = 1 THEN 1 END) AS DECIMAL(18,2)) /
+            NULLIF(COUNT(DISTINCT bs.Id), 0) * 100, 2
+        ) AS DECIMAL(18,2)
+    ) AS EffectivenessPercent,
+
+    CAST(ISNULL(SUM(bs.Amount), 0) AS DECIMAL(18,2)) AS TotalStake,
+    CAST(ISNULL(SUM(CASE WHEN bs.wynik = 1 THEN bs.PotentialWin ELSE 0 END), 0) AS DECIMAL(18,2)) AS TotalWinnings,
+
+    CAST(
+        ROUND(
+            ISNULL(SUM(CASE WHEN bs.wynik = 1 THEN bs.PotentialWin ELSE 0 END), 0)
+            - ISNULL(SUM(bs.Amount), 0),
+            2
+        ) AS DECIMAL(18,2)
+    ) AS Profit,
+
+    MAX(bs.Date) AS LastBetDate,
+
+    COUNT(DISTINCT t.Id) AS TransactionsCount,
+    CAST(ISNULL(SUM(CASE WHEN t.Type = 1 THEN t.Amount END), 0) AS DECIMAL(18,2)) AS TotalDeposits,
+    CAST(ISNULL(SUM(CASE WHEN t.Type = 2 THEN t.Amount END), 0) AS DECIMAL(18,2)) AS TotalWithdrawals
+
+FROM Player p
+LEFT JOIN BetSlip bs ON bs.PlayerId = p.Id
+LEFT JOIN [Transaction] t ON t.PlayerId = p.Id
+WHERE p.Id = @playerId
+GROUP BY
+    p.Id, p.Name, p.LastName, p.Email, p.AccountBalance";
+
+        var param = new Microsoft.Data.SqlClient.SqlParameter("@playerId", playerId);
+
+        var result = await _context.Database
+            .SqlQueryRaw<PlayerDetailsDto>(sql, param)
+            .FirstOrDefaultAsync();
+
+        return result;
+    }
 }

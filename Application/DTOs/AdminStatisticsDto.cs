@@ -53,3 +53,27 @@ public class PlayerProfitDto
     public decimal AccountBalance { get; set; }
     public decimal Profit { get; set; }
 }
+
+public class PlayerDetailsDto
+{
+    public int PlayerId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public decimal AccountBalance { get; set; }
+
+    public int BetsCount { get; set; }
+    public int WonBets { get; set; }
+    public int LostBets { get; set; }
+    public decimal EffectivenessPercent { get; set; }
+
+    public decimal TotalStake { get; set; }
+    public decimal TotalWinnings { get; set; }
+    public decimal Profit { get; set; }
+
+    public DateTime? LastBetDate { get; set; }
+
+    public int TransactionsCount { get; set; }
+    public decimal TotalDeposits { get; set; }
+    public decimal TotalWithdrawals { get; set; }
+}
