@@ -12,4 +12,5 @@ public interface IAdminStatisticsService
     Task<IEnumerable<SportEffectivenessDto>> GetSportEffectivenessAsync();
     Task<IEnumerable<PlayerProfitDto>> GetPlayersProfitAsync();
     Task<PlayerDetailsDto?> GetPlayerDetailsAsync(int playerId);
+    Task<List<UncompletedEventsDto>> GetUncompletedEventsAsync();
 }

@@ -77,3 +77,18 @@ public class PlayerDetailsDto
     public decimal TotalDeposits { get; set; }
     public decimal TotalWithdrawals { get; set; }
 }
+
+public class UncompletedEventsDto
+{
+    public int EventId { get; set; }
+    public string EventName { get; set; } = string.Empty;
+    public DateTime EventDate { get; set; }
+    public List<UncompletedOddsDto> Odds { get; set; } = new List<UncompletedOddsDto>();
+}
+
+public class UncompletedOddsDto
+{
+    public int TeamId { get; set; }
+    public string TeamName { get; set; } = string.Empty;
+    public decimal OddsValue { get; set; }
+}

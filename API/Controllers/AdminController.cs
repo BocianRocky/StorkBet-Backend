@@ -187,4 +187,24 @@ public class AdminController : ControllerBase
             return StatusCode(500, $"Błąd podczas pobierania szczegółów gracza: {ex.Message}");
         }
     }
+    
+    [HttpGet("events/uncompleted")]
+    public async Task<ActionResult<List<UncompletedEventsDto>>> GetUncompletedEvents()
+    {
+        try
+        {
+            var result = await _adminStatisticsService.GetUncompletedEventsAsync();
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Błąd podczas pobierania niezakończonych wydarzeń: {ex.Message}");
+        }
+    }
+    
 }

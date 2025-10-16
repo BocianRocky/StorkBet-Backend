@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Application.DTOs;
 using Application.Interfaces;
 using Infrastructure.Data;
@@ -229,4 +230,54 @@ GROUP BY
 
         return result;
     }
+    
+    
+    public async Task<List<UncompletedEventsDto>> GetUncompletedEventsAsync()
+    {
+        try
+        {
+            var rows = await _context.Events
+                .Where(e => e.IsCompleted == null)
+                .OrderBy(e => e.EventDate)
+                .SelectMany(e => e.Odds, (e, o) => new
+                {
+                    EventId = e.Id,
+                    e.EventName,
+                    e.EventDate,
+                    TeamId = o.Team.Id,
+                    TeamName = o.Team.TeamName,
+                    o.OddsValue
+                })
+                .ToListAsync();
+            
+            var events = rows
+                .GroupBy(r => new { r.EventId, r.EventName, r.EventDate })
+                .Select(g => new UncompletedEventsDto
+                {
+                    EventId = g.Key.EventId,
+                    EventName = g.Key.EventName,
+                    EventDate = g.Key.EventDate,
+                    Odds = g.Select(x => new UncompletedOddsDto
+                    {
+                        TeamId = x.TeamId,
+                        TeamName = x.TeamName,
+                        OddsValue = x.OddsValue
+                    }).ToList()
+                })
+                .ToList();
+
+            return events;
+        }
+        catch (Exception ex)
+        {
+            
+            
+            throw new Exception($"Błąd podczas pobierania niezakończonych wydarzeń: {ex.Message}");
+        }
+    }
+
+
+
+    
+    
 }
