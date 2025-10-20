@@ -115,6 +115,7 @@ public class BetSlipRepository : IBetSlipRepository
             .Include(bs => bs.BetSlipOdds)
                 .ThenInclude(bso => bso.Odds)
                     .ThenInclude(o => o.Event)
+            .Include(bs => bs.Player)
             .Where(bs => bs.Wynik == null)
             .ToListAsync();
 
@@ -162,6 +163,12 @@ public class BetSlipRepository : IBetSlipRepository
                     if (allOddsWon)
                     {
                         betSlip.Wynik = 1; // kupon wygrany
+                        
+                        // Przypisz wygraną do konta użytkownika
+                        if (betSlip.PotentialWin.HasValue)
+                        {
+                            betSlip.Player.AccountBalance += betSlip.PotentialWin.Value;
+                        }
                     }
                     else
                     {

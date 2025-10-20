@@ -353,7 +353,18 @@ GROUP BY
         if (allEventsCompleted)
         {
             // Kupon wygrany tylko jeśli wszystkie typy wygrane
-            betSlip.Wynik = allBso.All(bso => bso.Wynik == 1) ? 1 : 0;
+            bool allOddsWon = allBso.All(bso => bso.Wynik == 1);
+            betSlip.Wynik = allOddsWon ? 1 : 0;
+            
+            // Jeśli kupon wygrany, przypisz wygraną do konta użytkownika
+            if (allOddsWon && betSlip.Wynik == 1)
+            {
+                var player = await _context.Players.FindAsync(betSlip.PlayerId);
+                if (player != null && betSlip.PotentialWin.HasValue)
+                {
+                    player.AccountBalance += betSlip.PotentialWin.Value;
+                }
+            }
         }
         else
         {
