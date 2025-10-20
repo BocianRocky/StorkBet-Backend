@@ -122,4 +122,40 @@ public class PlayerRepository : IPlayerRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<bool> UpdatePlayerAsync(int playerId, string? name, string? lastName, string? email, decimal? accountBalance, int? role)
+    {
+        var dbPlayer = await _context.Players.FirstOrDefaultAsync(p => p.Id == playerId);
+        if (dbPlayer == null)
+        {
+            return false;
+        }
+
+        // Update only the fields that are provided (not null)
+        if (!string.IsNullOrEmpty(name))
+            dbPlayer.Name = name;
+        
+        if (!string.IsNullOrEmpty(lastName))
+            dbPlayer.LastName = lastName;
+        
+        if (!string.IsNullOrEmpty(email))
+        {
+            // Check if email is already taken by another user
+            var existingPlayer = await _context.Players.FirstOrDefaultAsync(p => p.Email == email && p.Id != playerId);
+            if (existingPlayer != null)
+            {
+                throw new InvalidOperationException("Email is already taken by another user");
+            }
+            dbPlayer.Email = email;
+        }
+        
+        if (accountBalance.HasValue)
+            dbPlayer.AccountBalance = accountBalance.Value;
+        
+        if (role.HasValue)
+            dbPlayer.Role = role.Value;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

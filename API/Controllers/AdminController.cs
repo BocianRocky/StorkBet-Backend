@@ -260,5 +260,40 @@ public class AdminController : ControllerBase
         
         return Ok("użytkownik usunięty");
     }
+
+    /// <summary>
+    /// Aktualizuje dane wybranego użytkownika
+    /// </summary>
+    [HttpPut("players/update")]
+    [Authorize(Policy = "AdminOnly")]
+    public async Task<IActionResult> UpdatePlayer([FromBody] UpdatePlayerRequestDto dto)
+    {
+        try
+        {
+            var result = await _playerRepository.UpdatePlayerAsync(
+                dto.PlayerId,
+                dto.Name,
+                dto.LastName,
+                dto.Email,
+                dto.AccountBalance,
+                dto.Role
+            );
+
+            if (!result)
+            {
+                return NotFound($"Użytkownik o ID {dto.PlayerId} nie został znaleziony.");
+            }
+
+            return Ok("Dane użytkownika zostały zaktualizowane pomyślnie.");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Błąd podczas aktualizacji danych użytkownika: {ex.Message}");
+        }
+    }
     
 }
