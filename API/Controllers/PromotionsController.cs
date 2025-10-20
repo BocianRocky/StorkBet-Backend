@@ -2,7 +2,6 @@ using Application.Interfaces;
 using API.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Infrastructure.Data;
 using System.Security.Claims;
 
 namespace API.Controllers;
@@ -20,7 +19,7 @@ public class PromotionsController : ControllerBase
 
     [HttpPost]
     [Authorize(Policy = "AdminOnly")]
-    public async Task<IActionResult> Create([FromBody] CreatePromotionRequestDto request)
+    public async Task<IActionResult> CreatePromotion([FromBody] CreatePromotionRequestDto request)
     {
         if (!ModelState.IsValid)
         {
@@ -154,7 +153,7 @@ public class PromotionsController : ControllerBase
     {
         public string Code { get; set; } = string.Empty;
     }
-
+    
     [HttpPost("redeem")]
     [Authorize(Policy = "PlayerOnly")]
     public async Task<IActionResult> RedeemPromotion([FromBody] RedeemPromotionRequest request)
@@ -181,6 +180,18 @@ public class PromotionsController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Policy = "AdminOnly")]
+    public async Task<IActionResult> DeletePromotion(int id)
+    {
+        var deleted=await _promotionRepository.DeletePromotionAsync(id);
+        if (!deleted)
+        {
+            return NotFound(new { message = $"Promocja o ID {id} nie istnieje." });
+        }
+        return Ok(new { message = $"Promocja o ID {id} została usunięta." });
     }
 }
 

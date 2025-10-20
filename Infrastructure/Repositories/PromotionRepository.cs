@@ -170,6 +170,20 @@ public class PromotionRepository : IPromotionRepository
 
         return assignment.Id;
     }
+    public async Task<bool> DeletePromotionAsync(int promotionId)
+    {
+        var promotion = await _dbContext.Promotions.FindAsync(promotionId);
+        if (promotion != null)
+        {
+            _dbContext.Promotions.Remove(promotion);
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 }
 
 

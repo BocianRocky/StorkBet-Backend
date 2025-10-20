@@ -22,6 +22,7 @@ public interface IPromotionRepository
     Task<IEnumerable<PromotionReadModel>> GetAvailableAsync(DateOnly today);
     Task<IEnumerable<PlayerPromotionReadModel>> GetPlayerPromotionsAsync(int playerId);
     Task<int> AssignPromotionToPlayerByCodeAsync(int playerId, string promoCode);
+    Task<bool> DeletePromotionAsync(int promotionId);
 }
 
 
