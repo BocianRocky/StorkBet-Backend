@@ -2,6 +2,7 @@ using System.Security.Claims;
 using API.DTOs;
 using Application.DTOs;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
@@ -23,6 +24,7 @@ public class AdminController : ControllerBase
     /// Pobiera stosunek wygranych/przegranych kuponów
     /// </summary>
     [HttpGet("win-loss-ratio")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<WinLossRatioDto>> GetWinLossRatio()
     {
         try
@@ -40,6 +42,7 @@ public class AdminController : ControllerBase
     /// Pobiera liczbę kuponów w poszczególnych miesiącach bieżącego roku
     /// </summary>
     [HttpGet("monthly-coupons")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<IEnumerable<MonthlyCouponsDto>>> GetMonthlyCoupons()
     {
         try
@@ -57,8 +60,10 @@ public class AdminController : ControllerBase
     /// Pobiera zysk bukmachera
     /// </summary>
     [HttpGet("bookmaker-profit")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<BookmakerProfitDto>> GetBookmakerProfit()
     {
+        
         var userIdClaim = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst("userId")?.Value;
         if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
 
@@ -79,8 +84,12 @@ public class AdminController : ControllerBase
     /// Pobiera średnią stawkę na miesiąc
     /// </summary>
     [HttpGet("monthly-average-stake")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<IEnumerable<MonthlyAverageStakeDto>>> GetMonthlyAverageStake()
     {
+        var userIdClaim = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst("userId")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
+        
         try
         {
             var result = await _adminStatisticsService.GetMonthlyAverageStakeAsync();
@@ -96,6 +105,7 @@ public class AdminController : ControllerBase
     /// Pobiera liczbę kuponów na poszczególne sporty
     /// </summary>
     [HttpGet("sport-coupons")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<IEnumerable<SportCouponsDto>>> GetSportCoupons()
     {
         try
@@ -113,6 +123,7 @@ public class AdminController : ControllerBase
     /// Pobiera skuteczność typów na poszczególne sporty
     /// </summary>
     [HttpGet("sport-effectiveness")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<IEnumerable<SportEffectivenessDto>>> GetSportEffectiveness()
     {
         try
@@ -130,6 +141,7 @@ public class AdminController : ControllerBase
     /// Pobiera wszystkie statystyki administratora w jednym wywołaniu
     /// </summary>
     [HttpGet("all-statistics")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<object>> GetAllStatistics()
     {
         try
@@ -166,6 +178,7 @@ public class AdminController : ControllerBase
     /// Pobiera ranking graczy po zysku
     /// </summary>
     [HttpGet("players-profit")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<IEnumerable<PlayerProfitDto>>> GetPlayersProfit()
     {
         try
@@ -183,6 +196,7 @@ public class AdminController : ControllerBase
     /// Pobiera szczegóły wybranego gracza (statystyki i transakcje)
     /// </summary>
     [HttpGet("players-profit/{playerId:int}")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<PlayerDetailsDto>> GetPlayerDetails([FromRoute] int playerId)
     {
         try
@@ -198,6 +212,7 @@ public class AdminController : ControllerBase
     }
     
     [HttpGet("events/uncompleted")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<List<UncompletedEventsDto>>> GetUncompletedEvents()
     {
         try
@@ -216,6 +231,7 @@ public class AdminController : ControllerBase
         }
     }
     [HttpPost("update-event-result")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> UpdateEventResult([FromBody] UpdateEventResultDto dto)
     {
         try
@@ -235,6 +251,7 @@ public class AdminController : ControllerBase
         }
     }
     [HttpDelete("{id}")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> DeletePlayer(int id)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst("userId")?.Value;
