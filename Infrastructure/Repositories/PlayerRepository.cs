@@ -113,4 +113,13 @@ public class PlayerRepository : IPlayerRepository
             Role = (Role)dbPlayer.Role
         };
     }
+    public async Task DeletePlayerAsync(int playerId)
+    {
+        var dbPlayer = await _context.Players.FirstOrDefaultAsync(p => p.Id == playerId);
+        if (dbPlayer != null)
+        {
+            _context.Players.Remove(dbPlayer);
+            await _context.SaveChangesAsync();
+        }
+    }
 }

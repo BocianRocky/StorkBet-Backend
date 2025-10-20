@@ -10,4 +10,6 @@ public interface IPlayerRepository
     Task<Player?> GetByRefreshTokenAsync(string refreshToken);
     Task UpdateRefreshTokenAsync(int playerId, string refreshToken, DateTime refreshTokenExp);
     Task<Player?> GetByIdAsync(int playerId);
+    
+    Task DeletePlayerAsync(int playerId);
 }

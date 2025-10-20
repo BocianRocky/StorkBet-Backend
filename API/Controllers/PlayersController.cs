@@ -156,6 +156,21 @@ public class PlayersController : ControllerBase
 
         return Ok(result);
     }
+    
+    [HttpDelete("delete-self")]
+    [Authorize (Policy = "PlayerOnly")] 
+    public async Task<IActionResult> DeleteMyAccount()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst("userId")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
+        if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
+        await _playerRepository.DeletePlayerAsync(userId);
+        
+        return Ok("Konto użytkownika zostało usunięte.");
+    }
+        
+    
+    
 }
 
 

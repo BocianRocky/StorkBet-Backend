@@ -11,10 +11,12 @@ namespace API.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly IAdminStatisticsService _adminStatisticsService;
+    private readonly IPlayerRepository _playerRepository;
 
-    public AdminController(IAdminStatisticsService adminStatisticsService)
+    public AdminController(IAdminStatisticsService adminStatisticsService, IPlayerRepository playerRepository)
     {
         _adminStatisticsService = adminStatisticsService;
+        _playerRepository = playerRepository;
     }
 
     /// <summary>
@@ -231,6 +233,15 @@ public class AdminController : ControllerBase
         {
             return StatusCode(500, $"Błąd podczas aktualizacji wyniku wydarzenia: {ex.Message}");
         }
+    }
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeletePlayer(int id)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst("userId")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
+        await _playerRepository.DeletePlayerAsync(id);
+        
+        return Ok("użytkownik usunięty");
     }
     
 }
