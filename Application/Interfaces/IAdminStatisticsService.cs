@@ -13,4 +13,11 @@ public interface IAdminStatisticsService
     Task<IEnumerable<PlayerProfitDto>> GetPlayersProfitAsync();
     Task<PlayerDetailsDto?> GetPlayerDetailsAsync(int playerId);
     Task<List<UncompletedEventsDto>> GetUncompletedEventsAsync();
+    Task UpdateEventResultAsync(
+        int eventId,
+        int team1Id,
+        int team2Id,
+        int team1Score,
+        int team2Score
+    );
 }

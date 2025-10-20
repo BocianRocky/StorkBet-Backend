@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using API.DTOs;
 using Application.DTOs;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -55,6 +57,11 @@ public class AdminController : ControllerBase
     [HttpGet("bookmaker-profit")]
     public async Task<ActionResult<BookmakerProfitDto>> GetBookmakerProfit()
     {
+        var userIdClaim = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst("userId")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
+
+        if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
+        if(userId!=1) return Forbid("Brak uprawnień administratora.");
         try
         {
             var result = await _adminStatisticsService.GetBookmakerProfitAsync();
@@ -204,6 +211,25 @@ public class AdminController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, $"Błąd podczas pobierania niezakończonych wydarzeń: {ex.Message}");
+        }
+    }
+    [HttpPost("update-event-result")]
+    public async Task<IActionResult> UpdateEventResult([FromBody] UpdateEventResultDto dto)
+    {
+        try
+        {
+            await _adminStatisticsService.UpdateEventResultAsync(
+                dto.EventId,
+                dto.Team1Id,
+                dto.Team2Id,
+                dto.Team1Score,
+                dto.Team2Score
+            );
+            return Ok("Wynik wydarzenia został zaktualizowany pomyślnie.");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Błąd podczas aktualizacji wyniku wydarzenia: {ex.Message}");
         }
     }
     

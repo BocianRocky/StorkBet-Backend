@@ -276,8 +276,95 @@ GROUP BY
         }
     }
 
+    public async Task UpdateEventResultAsync(int eventId, int team1Id, int team2Id, int team1Score, int team2Score)
+{
+    // Pobranie wydarzenia wraz z kursami i drużynami
+    var eventEntity = await _context.Events
+        .Include(e => e.Odds)
+            .ThenInclude(o => o.Team)
+        .Include(e => e.Odds)
+            .ThenInclude(o => o.BetSlipOdds)
+                .ThenInclude(bso => bso.BetSlip)
+        .FirstOrDefaultAsync(e => e.Id == eventId);
+
+    if (eventEntity == null)
+        throw new Exception($"Nie znaleziono wydarzenia o Id {eventId}.");
+
+    // Pobranie kursów dla drużyn
+    var team1Odds = eventEntity.Odds.FirstOrDefault(o => o.TeamId == team1Id);
+    var team2Odds = eventEntity.Odds.FirstOrDefault(o => o.TeamId == team2Id);
+    var drawOdds = eventEntity.Odds.FirstOrDefault(o => o.Team != null && o.Team.TeamName == "Draw");
+
+    if (team1Odds == null || team2Odds == null)
+        throw new Exception("Nie znaleziono kursów dla jednej lub obu drużyn.");
+
+    // Aktualizacja wyników drużyn i remisu
+    team1Odds.Wynik = team1Score;
+    team2Odds.Wynik = team2Score;
+
+    if (drawOdds != null)
+        drawOdds.Wynik = (team1Score == team2Score) ? 1 : 0;
+
+    eventEntity.IsCompleted = true;
+
+    // Określenie zwycięzcy
+    int winningTeamId = team1Score > team2Score ? team1Id :
+                        team2Score > team1Score ? team2Id : -1;
+
+    // Pobranie wszystkich powiązanych BetSlipOdds (bez null)
+    var relatedBetSlipOdds = eventEntity.Odds
+        .SelectMany(o => o.BetSlipOdds ?? Enumerable.Empty<BetSlipOdd>())
+        .Where(bso => bso != null && bso.Odds != null)
+        .ToList();
+
+    // Aktualizacja wyników pojedynczych zakładów
+    foreach (var betSlipOdd in relatedBetSlipOdds)
+    {
+        if (winningTeamId == -1)
+        {
+            // remis
+            betSlipOdd.Wynik = betSlipOdd.Odds.Team.TeamName == "Draw" ? 1 : 0;
+        }
+        else
+        {
+            // zwycięzca drużyny
+            betSlipOdd.Wynik = betSlipOdd.Odds.TeamId == winningTeamId ? 1 : 0;
+        }
+    }
+
+    // Rozliczenie kuponów dopiero po zaktualizowaniu wszystkich BetSlipOdds
+    var affectedBetSlips = relatedBetSlipOdds
+        .Select(bso => bso.BetSlip)
+        .Where(bs => bs != null)
+        .Distinct()
+        .ToList();
+
+    foreach (var betSlip in affectedBetSlips!)
+    {
+        // Pobranie wszystkich zakładów na kuponie z pełnymi eventami
+        var allBso = await _context.BetSlipOdds
+            .Include(bso => bso.Odds)
+                .ThenInclude(o => o.Event)
+            .Where(bso => bso.BetSlipId == betSlip.Id)
+            .ToListAsync();
+
+        bool allEventsCompleted = allBso.All(bso => bso.Odds?.Event?.IsCompleted == true);
+
+        if (allEventsCompleted)
+        {
+            // Kupon wygrany tylko jeśli wszystkie typy wygrane
+            betSlip.Wynik = allBso.All(bso => bso.Wynik == 1) ? 1 : 0;
+        }
+        else
+        {
+            // Pozostaw wynik null jeśli nie wszystkie mecze zakończone
+            betSlip.Wynik = null;
+        }
+    }
+
+    await _context.SaveChangesAsync();
+}
 
 
-    
-    
+
 }

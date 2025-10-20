@@ -120,55 +120,57 @@ public class BetSlipRepository : IBetSlipRepository
 
         foreach (var betSlip in pendingBetSlips)
         {
-            // Sprawdź czy wszystkie eventy w betslipie są zakończone
-            var allEventsCompleted = betSlip.BetSlipOdds.All(bso => 
-                bso.Odds.Event.IsCompleted == true);
-
-            if (allEventsCompleted)
+            bool lost = false;
+            foreach (var betSlipOdd in betSlip.BetSlipOdds)
             {
-                // Sprawdź wyniki dla każdego odd w betslipie
-                foreach (var betSlipOdd in betSlip.BetSlipOdds)
+                // Jeśli event jest zakończony i wynik jeszcze nie został sprawdzony
+                if (betSlipOdd.Odds.Event.IsCompleted==true && !betSlipOdd.Wynik.HasValue)
                 {
-                    if (!betSlipOdd.Wynik.HasValue)
-                    {
-                        // Sprawdź czy drużyna wygrała (porównaj wyniki)
-                        var teamResult = betSlipOdd.Odds.Wynik ?? 0;
-                        var otherOddsInEvent = await _dbContext.Odds
-                            .Where(o => o.EventId == betSlipOdd.Odds.EventId && o.Id != betSlipOdd.Odds.Id)
-                            .ToListAsync();
+                    var teamResult = betSlipOdd.Odds.Wynik ?? 0;
+                    var otherOddsInEvent = await _dbContext.Odds
+                        .Where(o => o.EventId == betSlipOdd.Odds.EventId && o.Id != betSlipOdd.Odds.Id)
+                        .ToListAsync();
 
-                        bool teamWon = true;
-                        foreach (var otherOdd in otherOddsInEvent)
+                    bool teamWon = true;
+                    foreach (var otherOdd in otherOddsInEvent)
+                    {
+                        if ((otherOdd.Wynik ?? 0) >= teamResult)
                         {
-                            if ((otherOdd.Wynik ?? 0) >= teamResult)
-                            {
-                                teamWon = false;
-                                break;
-                            }
+                            teamWon = false;
+                            break;
                         }
-
-                        betSlipOdd.Wynik = teamWon ? 1 : 0;
                     }
-                }
 
-                // Sprawdź czy wszystkie oddsy mają wyniki
-                var allOddsHaveResults = betSlip.BetSlipOdds.All(bso => bso.Wynik.HasValue);
-                
-                if (allOddsHaveResults)
-                {
-                    // Sprawdź czy wszystkie oddsy są wygrane (Wynik = 1)
-                    var allOddsWon = betSlip.BetSlipOdds.All(bso => bso.Wynik == 1);
-                    
-                    if (allOddsWon)
+                    betSlipOdd.Wynik = teamWon ? 1 : 0;
+
+                    // jeśli ten odd przegrał → cały kupon przegrany
+                    if (!teamWon)
                     {
-                        betSlip.Wynik = 1; // Cały betslip wygrany
-                    }
-                    else
-                    {
-                        betSlip.Wynik = 0; // Cały betslip przegrany (przynajmniej jeden odd przegrany)
+                        betSlip.Wynik = 0;
+                        lost = true;
+                        break; // nie ma sensu dalej sprawdzać reszty
                     }
                 }
             }
+            // jeśli żaden nie przegrał, ale wszystkie mecze się skończyły
+            if (!lost)
+            {
+                bool allEventsCompleted = betSlip.BetSlipOdds.All(bso => bso.Odds.Event.IsCompleted==true);
+                if (allEventsCompleted)
+                {
+                    bool allOddsWon = betSlip.BetSlipOdds.All(bso => bso.Wynik == 1);
+                    if (allOddsWon)
+                    {
+                        betSlip.Wynik = 1; // kupon wygrany
+                    }
+                    else
+                    {
+                        betSlip.Wynik = 0; // chociaż jeden przegrał (np. sprawdzony wcześniej)
+                    }
+                }
+            }
+
+           
         }
 
         await _dbContext.SaveChangesAsync();
