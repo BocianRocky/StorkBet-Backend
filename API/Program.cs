@@ -86,6 +86,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Enable static files serving
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

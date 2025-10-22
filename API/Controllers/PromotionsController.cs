@@ -46,6 +46,62 @@ public class PromotionsController : ControllerBase
         return Ok(new { id });
     }
 
+    [HttpPost("with-image")]
+    [Authorize(Policy = "AdminOnly")]
+    public async Task<IActionResult> CreatePromotionWithImage([FromForm] CreatePromotionWithImageDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        if (request.DateEnd < request.DateStart)
+        {
+            return BadRequest(new { message = "DateEnd must be greater than or equal to DateStart" });
+        }
+
+        string imagePath = string.Empty;
+
+        // Handle file upload
+        if (request.ImageFile != null && request.ImageFile.Length > 0)
+        {
+            // Create uploads directory if it doesn't exist
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "promotions");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            // Generate unique filename
+            var fileExtension = Path.GetExtension(request.ImageFile.FileName);
+            var fileName = $"{Guid.NewGuid()}{fileExtension}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            // Save file
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await request.ImageFile.CopyToAsync(stream);
+            }
+
+            // Store only filename for database (shorter path)
+            imagePath = fileName;
+        }
+
+        var id = await _promotionRepository.CreateAsync(
+            request.PromotionName,
+            request.DateStart,
+            request.DateEnd,
+            request.BonusType,
+            request.BonusValue,
+            request.PromoCode,
+            request.MinDeposit,
+            request.MaxDeposit,
+            imagePath,
+            request.Description
+            );
+        return Ok(new { id, imagePath });
+    }
+
     [HttpGet]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> GetAll()
@@ -63,7 +119,7 @@ public class PromotionsController : ControllerBase
             PromoCode = p.PromoCode,
             MinDeposit = p.MinDeposit,
             MaxDeposit = p.MaxDeposit,
-            Image = p.Image,
+            Image = !string.IsNullOrEmpty(p.Image) ? $"/api/promotions/image/{p.Image}" : string.Empty,
             Description = p.Description
         }).ToList();
 
@@ -88,7 +144,7 @@ public class PromotionsController : ControllerBase
             PromoCode = p.PromoCode,
             MinDeposit = p.MinDeposit,
             MaxDeposit = p.MaxDeposit,
-            Image = p.Image,
+            Image = !string.IsNullOrEmpty(p.Image) ? $"/api/promotions/image/{p.Image}" : string.Empty,
             Description = p.Description
         }).ToList();
 
@@ -113,7 +169,7 @@ public class PromotionsController : ControllerBase
             PromoCode = p.PromoCode,
             MinDeposit = p.MinDeposit,
             MaxDeposit = p.MaxDeposit,
-            Image = p.Image,
+            Image = !string.IsNullOrEmpty(p.Image) ? $"/api/promotions/image/{p.Image}" : string.Empty,
             Description = p.Description
         }).ToList();
 
@@ -142,7 +198,7 @@ public class PromotionsController : ControllerBase
             MinDeposit = p.MinDeposit,
             MaxDeposit = p.MaxDeposit,
             Availability = p.Availability,
-            Image = p.Image,
+            Image = !string.IsNullOrEmpty(p.Image) ? $"/api/promotions/image/{p.Image}" : string.Empty,
             Description = p.Description
         }).ToList();
 
@@ -192,6 +248,45 @@ public class PromotionsController : ControllerBase
             return NotFound(new { message = $"Promocja o ID {id} nie istnieje." });
         }
         return Ok(new { message = $"Promocja o ID {id} została usunięta." });
+    }
+
+    /// <summary>
+    /// Pobiera obrazek promocji
+    /// </summary>
+    [HttpGet("image/{fileName}")]
+    [AllowAnonymous]
+    public IActionResult GetPromotionImage(string fileName)
+    {
+        // Validate filename to prevent directory traversal attacks
+        if (string.IsNullOrEmpty(fileName) || fileName.Contains("..") || fileName.Contains("/") || fileName.Contains("\\"))
+        {
+            return BadRequest("Nieprawidłowa nazwa pliku.");
+        }
+
+        var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "promotions", fileName);
+        
+        if (!System.IO.File.Exists(imagePath))
+        {
+            return NotFound("Obrazek nie został znaleziony.");
+        }
+
+        var fileBytes = System.IO.File.ReadAllBytes(imagePath);
+        var contentType = GetContentType(fileName);
+        
+        return File(fileBytes, contentType);
+    }
+
+    private string GetContentType(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return extension switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            ".webp" => "image/webp",
+            _ => "application/octet-stream"
+        };
     }
 }
 
