@@ -118,7 +118,7 @@ public class PlayerRepository : IPlayerRepository
         var dbPlayer = await _context.Players.FirstOrDefaultAsync(p => p.Id == playerId);
         if (dbPlayer != null)
         {
-            _context.Players.Remove(dbPlayer);
+            await _context.Database.ExecuteSqlRawAsync("EXEC DeleteOrAnonymizePlayer {0}", playerId);
             await _context.SaveChangesAsync();
         }
     }
