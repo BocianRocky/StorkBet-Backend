@@ -32,3 +32,4 @@ public class CreatePromotionWithImageDto
     
     public string Description { get; set; } = string.Empty;
 }
+

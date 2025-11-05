@@ -128,7 +128,10 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Group");
 
-            entity.Property(e => e.GroupName).HasColumnName("Group_name");
+            entity.Property(e => e.GroupName)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("Group_name");
         });
 
         modelBuilder.Entity<GroupchatMessage>(entity =>

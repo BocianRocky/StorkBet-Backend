@@ -2,6 +2,7 @@ using Application.Config;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Application.Interfaces;
+using Infrastructure.Interfaces;
 using Infrastructure.Repositories;
 using Application.Services;
 using Infrastructure.Services;
@@ -23,6 +24,7 @@ builder.Services.AddScoped<ITeamRepository, TeamRepository>();
 builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
 builder.Services.AddScoped<IBetSlipRepository, BetSlipRepository>();
 builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
+builder.Services.AddScoped<IGroupRepository, GroupRepository>();
 
 // Services
 builder.Services.AddScoped<ISportService, SportService>();
