@@ -9,3 +9,4 @@ public class SendGroupMessageRequestDto
     public string MessageText { get; set; } = string.Empty;
 }
 
+

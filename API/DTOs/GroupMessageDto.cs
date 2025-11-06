@@ -10,3 +10,4 @@ public class GroupMessageDto
     public string MessageText { get; set; } = string.Empty;
 }
 
+
