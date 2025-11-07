@@ -123,6 +123,7 @@ public class PromotionRepository : IPromotionRepository
             .Select(ap => new PlayerPromotionReadModel
             {
                 Id = ap.Promotion.Id,
+                AvailablePromotionId = ap.Id,
                 PromotionName = ap.Promotion.PromotionName,
                 DateStart = ap.Promotion.DateStart,
                 DateEnd = ap.Promotion.DateEnd,

@@ -13,6 +13,8 @@ public partial class AvailablePromotion
 
     public string Availability { get; set; } = null!;
 
+    public virtual ICollection<BetSlip> BetSlips { get; set; } = new List<BetSlip>();
+
     public virtual Player Player { get; set; } = null!;
 
     public virtual Promotion Promotion { get; set; } = null!;

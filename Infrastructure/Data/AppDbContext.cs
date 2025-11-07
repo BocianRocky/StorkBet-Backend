@@ -68,9 +68,15 @@ public partial class AppDbContext : DbContext
             entity.ToTable("BetSlip");
 
             entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.AvailablePromotionId).HasColumnName("AvailablePromotion_Id");
             entity.Property(e => e.Date).HasColumnType("datetime");
             entity.Property(e => e.PotentialWin).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Wynik).HasColumnName("wynik");
+
+            entity.HasOne(d => d.AvailablePromotion).WithMany(p => p.BetSlips)
+                .HasForeignKey(d => d.AvailablePromotionId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("BetSlip_AvailablePromotion");
 
             entity.HasOne(d => d.Player).WithMany(p => p.BetSlips)
                 .HasForeignKey(d => d.PlayerId)

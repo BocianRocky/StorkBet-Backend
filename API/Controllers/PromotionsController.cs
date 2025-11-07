@@ -189,6 +189,7 @@ public class PromotionsController : ControllerBase
         var result = promos.Select(p => new PlayerPromotionDto
         {
             Id = p.Id,
+            AvailablePromotionId = p.AvailablePromotionId,
             PromotionName = p.PromotionName,
             DateStart = p.DateStart,
             DateEnd = p.DateEnd,

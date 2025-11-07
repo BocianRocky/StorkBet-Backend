@@ -10,6 +10,9 @@ public class CreateBetSlipRequestDto
 
     [MinLength(1)]
     public List<int> OddsIds { get; set; } = new();
+
+    [Range(1, int.MaxValue)]
+    public int? AvailablePromotionId { get; set; }
 }
 
 

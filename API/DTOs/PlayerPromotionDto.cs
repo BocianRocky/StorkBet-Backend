@@ -3,6 +3,7 @@ namespace API.DTOs;
 public class PlayerPromotionDto
 {
     public int Id { get; set; }
+    public int AvailablePromotionId { get; set; }
     public string PromotionName { get; set; } = string.Empty;
     public DateOnly DateStart { get; set; }
     public DateOnly DateEnd { get; set; }

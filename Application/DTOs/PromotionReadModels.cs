@@ -17,6 +17,7 @@ public class PromotionReadModel
 
 public class PlayerPromotionReadModel : PromotionReadModel
 {
+    public int AvailablePromotionId { get; set; }
     public string Availability { get; set; } = string.Empty;
 }
 

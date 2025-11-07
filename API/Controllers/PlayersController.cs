@@ -69,7 +69,7 @@ public class PlayersController : ControllerBase
 
         try
         {
-            var id = await _betSlipRepository.CreateBetSlipAsync(userId, request.Amount, request.OddsIds);
+            var id = await _betSlipRepository.CreateBetSlipAsync(userId, request.Amount, request.OddsIds, request.AvailablePromotionId);
             return Ok(new { id });
         }
         catch (KeyNotFoundException ex)

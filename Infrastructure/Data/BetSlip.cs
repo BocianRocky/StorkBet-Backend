@@ -17,6 +17,10 @@ public partial class BetSlip
 
     public decimal? PotentialWin { get; set; }
 
+    public int? AvailablePromotionId { get; set; }
+
+    public virtual AvailablePromotion? AvailablePromotion { get; set; }
+
     public virtual ICollection<BetSlipOdd> BetSlipOdds { get; set; } = new List<BetSlipOdd>();
 
     public virtual Player Player { get; set; } = null!;

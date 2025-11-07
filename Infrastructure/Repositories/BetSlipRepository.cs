@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ public class BetSlipRepository : IBetSlipRepository
         _dbContext = dbContext;
     }
 
-    public async Task<int> CreateBetSlipAsync(int playerId, decimal amount, IEnumerable<int> oddsIds)
+    public async Task<int> CreateBetSlipAsync(int playerId, decimal amount, IEnumerable<int> oddsIds, int? availablePromotionId)
     {
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
@@ -51,6 +52,48 @@ public class BetSlipRepository : IBetSlipRepository
             throw new KeyNotFoundException("Some odds were not found");
         }
 
+        AvailablePromotion? availablePromotion = null;
+        if (availablePromotionId.HasValue)
+        {
+            availablePromotion = await _dbContext.AvailablePromotions
+                .Include(ap => ap.Promotion)
+                .FirstOrDefaultAsync(ap => ap.Id == availablePromotionId.Value && ap.PlayerId == playerId);
+
+            if (availablePromotion == null)
+            {
+                throw new KeyNotFoundException("Promotion not found for this player");
+            }
+
+            if (!string.Equals(availablePromotion.Availability, "available", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Promotion is not available");
+            }
+
+            if (availablePromotion.Promotion == null)
+            {
+                throw new InvalidOperationException("Promotion details are missing");
+            }
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+
+            if (availablePromotion.Promotion.DateStart > today || availablePromotion.Promotion.DateEnd < today)
+            {
+                throw new InvalidOperationException("Promotion is not active");
+            }
+
+            var minDeposit = availablePromotion.Promotion.MinDeposit;
+            if (minDeposit.HasValue && amount < minDeposit.Value)
+            {
+                throw new InvalidOperationException($"Minimum bet amount for this promotion is {minDeposit.Value:F2}");
+            }
+
+            var maxDeposit = availablePromotion.Promotion.MaxDeposit;
+            if (maxDeposit.HasValue && amount > maxDeposit.Value)
+            {
+                throw new InvalidOperationException($"Maximum bet amount for this promotion is {maxDeposit.Value:F2}");
+            }
+        }
+
         // Calculate total odds upfront to compute PotentialWin
         var totalOdds = odds.Aggregate(1m, (acc, o) => acc * o.OddsValue);
 
@@ -60,7 +103,8 @@ public class BetSlipRepository : IBetSlipRepository
             Amount = amount,
             Date = DateTime.UtcNow,
             Wynik = null,
-            PotentialWin = amount * totalOdds
+            PotentialWin = amount * totalOdds,
+            AvailablePromotionId = availablePromotion?.Id
         };
 
         await _dbContext.BetSlips.AddAsync(betSlip);
@@ -75,6 +119,12 @@ public class BetSlipRepository : IBetSlipRepository
         }).ToList();
 
         await _dbContext.BetSlipOdds.AddRangeAsync(betSlipOdds);
+
+        if (availablePromotion != null)
+        {
+            availablePromotion.Availability = "used";
+            _dbContext.AvailablePromotions.Update(availablePromotion);
+        }
 
         player.AccountBalance -= amount;
         _dbContext.Players.Update(player);
