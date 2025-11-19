@@ -12,11 +12,13 @@ public class PlayersController : ControllerBase
 {
     private readonly IPlayerRepository _playerRepository;
     private readonly IBetSlipRepository _betSlipRepository;
+    private readonly ITransactionRepository _transactionRepository;
 
-    public PlayersController(IPlayerRepository playerRepository, IBetSlipRepository betSlipRepository)
+    public PlayersController(IPlayerRepository playerRepository, IBetSlipRepository betSlipRepository, ITransactionRepository transactionRepository)
     {
         _playerRepository = playerRepository;
         _betSlipRepository = betSlipRepository;
+        _transactionRepository = transactionRepository;
     } 
 
     [HttpGet("me")]
@@ -167,6 +169,68 @@ public class PlayersController : ControllerBase
         await _playerRepository.DeletePlayerAsync(userId);
         
         return Ok("Konto użytkownika zostało usunięte.");
+    }
+
+    [HttpPost("deposit")]
+    [Authorize(Policy = "PlayerOnly")]
+    public async Task<IActionResult> Deposit([FromBody] DepositRequestDto request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst("userId")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
+        if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
+
+        try
+        {
+            var transactionId = await _transactionRepository.CreateDepositAsync(userId, request.Amount, request.PaymentMethod);
+            
+            var player = await _playerRepository.GetByIdAsync(userId);
+            
+            return Ok(new
+            {
+                transactionId = transactionId,
+                newBalance = player?.AccountBalance ?? 0,
+                message = "Wpłata została pomyślnie zrealizowana"
+            });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("withdrawal")]
+    [Authorize(Policy = "PlayerOnly")]
+    public async Task<IActionResult> Withdrawal([FromBody] WithdrawalRequestDto request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst("userId")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
+        if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
+
+        try
+        {
+            var transactionId = await _transactionRepository.CreateWithdrawalAsync(userId, request.Amount, request.PaymentMethod);
+            
+            var player = await _playerRepository.GetByIdAsync(userId);
+            
+            return Ok(new
+            {
+                transactionId = transactionId,
+                newBalance = player?.AccountBalance ?? 0,
+                message = "Wypłata została pomyślnie zrealizowana"
+            });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
         
     
