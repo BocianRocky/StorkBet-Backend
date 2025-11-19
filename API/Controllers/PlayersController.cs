@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Application.Interfaces;
+using Application.DTOs;
 using API.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,12 +14,14 @@ public class PlayersController : ControllerBase
     private readonly IPlayerRepository _playerRepository;
     private readonly IBetSlipRepository _betSlipRepository;
     private readonly ITransactionRepository _transactionRepository;
+    private readonly IAdminStatisticsService _adminStatisticsService;
 
-    public PlayersController(IPlayerRepository playerRepository, IBetSlipRepository betSlipRepository, ITransactionRepository transactionRepository)
+    public PlayersController(IPlayerRepository playerRepository, IBetSlipRepository betSlipRepository, ITransactionRepository transactionRepository, IAdminStatisticsService adminStatisticsService)
     {
         _playerRepository = playerRepository;
         _betSlipRepository = betSlipRepository;
         _transactionRepository = transactionRepository;
+        _adminStatisticsService = adminStatisticsService;
     } 
 
     [HttpGet("me")]
@@ -230,6 +233,21 @@ public class PlayersController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("ranking")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetUserRanking([FromQuery] int topCount = 30)
+    {
+        try
+        {
+            var ranking = await _adminStatisticsService.GetUserRankingAsync(topCount);
+            return Ok(ranking);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Błąd podczas pobierania rankingu: {ex.Message}" });
         }
     }
         

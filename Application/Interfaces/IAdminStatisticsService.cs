@@ -20,4 +20,5 @@ public interface IAdminStatisticsService
         int team1Score,
         int team2Score
     );
+    Task<IEnumerable<UserRankingDto>> GetUserRankingAsync(int topCount = 30);
 }

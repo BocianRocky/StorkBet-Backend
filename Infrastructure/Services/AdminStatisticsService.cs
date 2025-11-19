@@ -376,6 +376,115 @@ GROUP BY
     await _context.SaveChangesAsync();
 }
 
+public async Task<IEnumerable<UserRankingDto>> GetUserRankingAsync(int topCount = 30)
+{
+    // Pobranie danych dla wszystkich graczy
+    var sql = @"
+SELECT
+    p.Id AS PlayerId,
+    p.Name,
+    p.LastName,
+    CAST(ISNULL(SUM(bs.Amount), 0) AS DECIMAL(18,2)) AS TotalStake,
+    CAST(ISNULL(SUM(CASE WHEN bs.wynik = 1 THEN bs.PotentialWin ELSE 0 END), 0) AS DECIMAL(18,2)) AS TotalWinnings,
+    CAST(
+        ROUND(
+            ISNULL(SUM(CASE WHEN bs.wynik = 1 THEN bs.PotentialWin ELSE 0 END), 0)
+            - ISNULL(SUM(bs.Amount), 0),
+            2
+        ) AS DECIMAL(18,2)
+    ) AS Profit,
+    CAST(
+        CASE 
+            WHEN ISNULL(SUM(bs.Amount), 0) > 0 
+            THEN ROUND(
+                (ISNULL(SUM(CASE WHEN bs.wynik = 1 THEN bs.PotentialWin ELSE 0 END), 0)
+                - ISNULL(SUM(bs.Amount), 0)) / ISNULL(SUM(bs.Amount), 0) * 100,
+                2
+            )
+            ELSE 0
+        END AS DECIMAL(18,2)
+    ) AS Yield,
+    CAST(
+        ROUND(
+            CAST(COUNT(CASE WHEN bs.wynik = 1 THEN 1 END) AS DECIMAL(18,2)) /
+            NULLIF(COUNT(DISTINCT bs.Id), 0) * 100, 2
+        ) AS DECIMAL(18,2)
+    ) AS WinRate,
+    COUNT(DISTINCT bs.Id) AS BetsCount
+FROM Player p
+LEFT JOIN BetSlip bs ON bs.PlayerId = p.Id
+WHERE p.Role = 2
+GROUP BY p.Id, p.Name, p.LastName
+HAVING COUNT(DISTINCT bs.Id) > 0";
 
+    var playerStats = await _context.Database
+        .SqlQueryRaw<PlayerRankingStats>(sql)
+        .ToListAsync();
+
+    if (!playerStats.Any())
+        return new List<UserRankingDto>();
+
+    // Obliczenie min i max dla normalizacji
+    var profits = playerStats.Select(p => p.Profit).ToList();
+    var yields = playerStats.Select(p => p.Yield).ToList();
+    var winRates = playerStats.Select(p => p.WinRate).ToList();
+    var betsCounts = playerStats.Select(p => (decimal)p.BetsCount).ToList();
+
+    var minProfit = profits.Min();
+    var maxProfit = profits.Max();
+    var minYield = yields.Min();
+    var maxYield = yields.Max();
+    var minWinRate = winRates.Min();
+    var maxWinRate = winRates.Max();
+    var minBetsCount = betsCounts.Min();
+    var maxBetsCount = betsCounts.Max();
+
+    // Funkcja normalizacji min-max
+    decimal Normalize(decimal value, decimal min, decimal max)
+    {
+        if (max == min) return 0;
+        return (value - min) / (max - min);
+    }
+
+    // Obliczenie score dla każdego gracza
+    var rankings = playerStats.Select(stat =>
+    {
+        var profitNormalized = Normalize(stat.Profit, minProfit, maxProfit);
+        var yieldNormalized = Normalize(stat.Yield, minYield, maxYield);
+        var winRateNormalized = Normalize(stat.WinRate, minWinRate, maxWinRate);
+        var betsCountNormalized = Normalize((decimal)stat.BetsCount, minBetsCount, maxBetsCount);
+
+        var score = (profitNormalized * 0.4m) +
+                   (yieldNormalized * 0.3m) +
+                   (winRateNormalized * 0.15m) +
+                   (betsCountNormalized * 0.15m);
+
+        return new UserRankingDto
+        {
+            Id = stat.PlayerId,
+            Name = stat.Name,
+            LastName = stat.LastName,
+            Score = Math.Round(score, 4)
+        };
+    })
+    .OrderByDescending(r => r.Score)
+    .Take(topCount)
+    .ToList();
+
+    return rankings;
+}
+
+private class PlayerRankingStats
+{
+    public int PlayerId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public decimal TotalStake { get; set; }
+    public decimal TotalWinnings { get; set; }
+    public decimal Profit { get; set; }
+    public decimal Yield { get; set; }
+    public decimal WinRate { get; set; }
+    public int BetsCount { get; set; }
+}
 
 }

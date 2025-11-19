@@ -92,3 +92,11 @@ public class UncompletedOddsDto
     public string TeamName { get; set; } = string.Empty;
     public decimal OddsValue { get; set; }
 }
+
+public class UserRankingDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public decimal Score { get; set; }
+}
