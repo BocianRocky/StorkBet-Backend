@@ -1,4 +1,5 @@
 namespace API.Controllers;
+using System.Linq;
 using Application.Interfaces;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +39,20 @@ public class SportsController:ControllerBase
     {
         var groupedSports = await _sportService.GetGroupedSportsAsync();
         return Ok(groupedSports);
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetSportsSimple()
+    {
+        var sports = await _sportService.GetAllSportsAsync();
+        var result = sports.Select(s => new DTOs.SportSimpleDto
+        {
+            Id = s.Id,
+            Title = s.Title,
+            Key = s.Key
+        }).ToList();
+        return Ok(result);
     }
     
 }
