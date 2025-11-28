@@ -20,4 +20,6 @@ public interface IEventRepository
     Task<Event?>GetByHomeAwayTeamDateAsync(string homeTeam, string awayTeam, DateTime commenceTime);
     
     Task MarkEventAsCompletedAsync(int eventId);
+    
+    Task<List<PopularEventDto>> GetPopularEventsAsync(int limit = 10, int daysAhead = 7);
 }

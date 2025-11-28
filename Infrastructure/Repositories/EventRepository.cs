@@ -209,4 +209,49 @@ public class EventRepository : IEventRepository
             _context.Events.Update(ev);
         }
     }
+
+    public async Task<List<PopularEventDto>> GetPopularEventsAsync(int limit = 10, int daysAhead = 7)
+    {
+        var cutoffDate = DateTime.UtcNow.AddDays(daysAhead);
+        
+        var eventsQuery = _context.Events
+            .Include(e => e.Odds)
+                .ThenInclude(o => o.Team)
+            .Include(e => e.Odds)
+                .ThenInclude(o => o.BetSlipOdds)
+            .Include(e => e.Sport)
+            .Where(e => e.EventDate > DateTime.UtcNow && e.EventDate <= cutoffDate)
+            .Where(e => e.IsCompleted != true);
+
+        var events = await eventsQuery.ToListAsync();
+
+        var eventsWithBetCounts = events
+            .Select(e => new
+            {
+                Event = e,
+                BetCount = e.Odds.Sum(o => o.BetSlipOdds.Count)
+            })
+            .OrderByDescending(x => x.BetCount)
+            .ThenBy(x => x.Event.EventDate)
+            .Take(limit)
+            .ToList();
+
+        return eventsWithBetCounts.Select(x => new PopularEventDto
+        {
+            EventId = x.Event.Id,
+            EventName = x.Event.EventName,
+            EventDate = x.Event.EventDate,
+            SportId = x.Event.SportId,
+            SportKey = x.Event.Sport.Key,
+            SportTitle = x.Event.Sport.Title,
+            SportGroup = x.Event.Sport.Group,
+            Odds = x.Event.Odds.Select(o => new OddDto
+            {
+                OddId = o.Id,
+                TeamName = o.Team.TeamName,
+                OddsValue = o.OddsValue
+            }).ToList(),
+            BetCount = x.BetCount
+        }).ToList();
+    }
 }
