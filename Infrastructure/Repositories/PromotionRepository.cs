@@ -118,7 +118,7 @@ public class PromotionRepository : IPromotionRepository
     public async Task<IEnumerable<PlayerPromotionReadModel>> GetPlayerPromotionsAsync(int playerId)
     {
         return await _dbContext.AvailablePromotions
-            .Where(ap => ap.PlayerId == playerId)
+            .Where(ap => ap.PlayerId == playerId && ap.Availability == "available")
             .Include(ap => ap.Promotion)
             .Select(ap => new PlayerPromotionReadModel
             {

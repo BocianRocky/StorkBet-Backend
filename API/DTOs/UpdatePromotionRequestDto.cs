@@ -34,3 +34,6 @@ public class UpdatePromotionRequestDto
     public string Description { get; set; } = string.Empty;
 }
 
+
+
+
