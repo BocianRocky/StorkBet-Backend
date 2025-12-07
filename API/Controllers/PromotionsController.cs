@@ -239,6 +239,69 @@ public class PromotionsController : ControllerBase
         }
     }
 
+    [HttpPut("{id}")]
+    [Authorize(Policy = "AdminOnly")]
+    public async Task<IActionResult> UpdatePromotion(int id, [FromBody] UpdatePromotionRequestDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        if (request.DateEnd < request.DateStart)
+        {
+            return BadRequest(new { message = "DateEnd must be greater than or equal to DateStart" });
+        }
+
+        // Extract only filename from image path if full URL is provided
+        string imagePath = request.Image?.Trim() ?? string.Empty;
+        if (!string.IsNullOrEmpty(imagePath))
+        {
+            // Remove API path prefix if present
+            const string imagePathPrefix = "/api/promotions/image/";
+            if (imagePath.StartsWith(imagePathPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                imagePath = imagePath.Substring(imagePathPrefix.Length);
+            }
+            
+            // Remove any query parameters (e.g., ?timestamp=123)
+            if (imagePath.Contains('?'))
+            {
+                imagePath = imagePath.Substring(0, imagePath.IndexOf('?'));
+            }
+            
+            // Extract only filename using Path.GetFileName (handles any remaining path separators)
+            imagePath = Path.GetFileName(imagePath);
+            
+            // If empty after processing, set to empty string
+            if (string.IsNullOrWhiteSpace(imagePath))
+            {
+                imagePath = string.Empty;
+            }
+        }
+
+        var updated = await _promotionRepository.UpdateAsync(
+            id,
+            request.PromotionName,
+            request.DateStart,
+            request.DateEnd,
+            request.BonusType,
+            request.BonusValue,
+            request.PromoCode,
+            request.MinDeposit,
+            request.MaxDeposit,
+            imagePath ?? string.Empty,
+            request.Description
+        );
+
+        if (!updated)
+        {
+            return NotFound(new { message = $"Promocja o ID {id} nie istnieje." });
+        }
+
+        return Ok(new { message = $"Promocja o ID {id} została zaktualizowana." });
+    }
+
     [HttpDelete("{id}")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> DeletePromotion(int id)

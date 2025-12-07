@@ -171,6 +171,42 @@ public class PromotionRepository : IPromotionRepository
 
         return assignment.Id;
     }
+
+    public async Task<bool> UpdateAsync(
+        int promotionId,
+        string promotionName,
+        DateOnly dateStart,
+        DateOnly dateEnd,
+        string bonusType,
+        decimal bonusValue,
+        string? promoCode,
+        decimal? minDeposit,
+        decimal? maxDeposit,
+        string image,
+        string description)
+    {
+        var promotion = await _dbContext.Promotions.FindAsync(promotionId);
+        if (promotion == null)
+        {
+            return false;
+        }
+
+        promotion.PromotionName = promotionName;
+        promotion.DateStart = dateStart;
+        promotion.DateEnd = dateEnd;
+        promotion.BonusType = bonusType;
+        promotion.BonusValue = bonusValue;
+        promotion.PromoCode = promoCode;
+        promotion.MinDeposit = minDeposit;
+        promotion.MaxDeposit = maxDeposit;
+        promotion.Image = image;
+        promotion.Description = description;
+
+        _dbContext.Promotions.Update(promotion);
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<bool> DeletePromotionAsync(int promotionId)
     {
         var promotion = await _dbContext.Promotions.FindAsync(promotionId);
