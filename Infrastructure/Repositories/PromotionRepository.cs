@@ -117,8 +117,13 @@ public class PromotionRepository : IPromotionRepository
 
     public async Task<IEnumerable<PlayerPromotionReadModel>> GetPlayerPromotionsAsync(int playerId)
     {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        
         return await _dbContext.AvailablePromotions
-            .Where(ap => ap.PlayerId == playerId && ap.Availability == "available")
+            .Where(ap => ap.PlayerId == playerId 
+                && ap.Availability == "available"
+                && ap.Promotion.DateStart <= today 
+                && ap.Promotion.DateEnd >= today)
             .Include(ap => ap.Promotion)
             .Select(ap => new PlayerPromotionReadModel
             {

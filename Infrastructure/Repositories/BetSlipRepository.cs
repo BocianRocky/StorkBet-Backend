@@ -55,42 +55,96 @@ public class BetSlipRepository : IBetSlipRepository
         AvailablePromotion? availablePromotion = null;
         if (availablePromotionId.HasValue)
         {
+            
             availablePromotion = await _dbContext.AvailablePromotions
                 .Include(ap => ap.Promotion)
                 .FirstOrDefaultAsync(ap => ap.Id == availablePromotionId.Value && ap.PlayerId == playerId);
 
+            
             if (availablePromotion == null)
             {
-                throw new KeyNotFoundException("Promotion not found for this player");
+                availablePromotion = await _dbContext.AvailablePromotions
+                    .Include(ap => ap.Promotion)
+                    .FirstOrDefaultAsync(ap => ap.PromotionId == availablePromotionId.Value && ap.PlayerId == playerId);
             }
 
-            if (!string.Equals(availablePromotion.Availability, "available", StringComparison.OrdinalIgnoreCase))
+            
+            if (availablePromotion == null)
             {
-                throw new InvalidOperationException("Promotion is not available");
+                var allPromotionsForPlayer = await _dbContext.AvailablePromotions
+                    .Where(ap => ap.PlayerId == playerId)
+                    .Select(ap => new { ap.Id, ap.PromotionId, ap.Availability })
+                    .ToListAsync();
+                
+                var errorMessage = $"Promotion with ID {availablePromotionId.Value} not found for this player. ";
+                
+                var promotionExists = await _dbContext.Promotions
+                    .FirstOrDefaultAsync(p => p.Id == availablePromotionId.Value);
+                
+                if (promotionExists != null)
+                {
+                    errorMessage += $"PromotionId {availablePromotionId.Value} exists but is not assigned to your account. Use /api/Promotions/redeem to redeem it first. ";
+                }
+                
+                errorMessage += $"Available promotions for PlayerId {playerId}: [{string.Join(", ", allPromotionsForPlayer.Select(p => $"AvailablePromotionId={p.Id} (PromotionId={p.PromotionId}, Availability={p.Availability})"))}]";
+                
+                throw new KeyNotFoundException(errorMessage);
+            }
+            
+            var validationErrors = new List<string>();
+            var diagnosticInfo = new List<string>
+            {
+                $"AvailablePromotionId: {availablePromotion.Id}",
+                $"PlayerId: {playerId}",
+                $"PromotionId: {availablePromotion.PromotionId}",
+                $"Availability (raw): '{availablePromotion.Availability}'",
+                $"Availability (trimmed): '{availablePromotion.Availability?.Trim()}'"
+            };
+
+            var availability = availablePromotion.Availability?.Trim() ?? string.Empty;
+            if (!string.Equals(availability, "available", StringComparison.OrdinalIgnoreCase))
+            {
+                validationErrors.Add($"Availability is '{availablePromotion.Availability}' but expected 'available'");
             }
 
             if (availablePromotion.Promotion == null)
             {
-                throw new InvalidOperationException("Promotion details are missing");
+                validationErrors.Add("Promotion details are missing (Promotion is null)");
+            }
+            else
+            {
+                diagnosticInfo.Add($"PromotionName: {availablePromotion.Promotion.PromotionName}");
+                diagnosticInfo.Add($"DateStart: {availablePromotion.Promotion.DateStart}");
+                diagnosticInfo.Add($"DateEnd: {availablePromotion.Promotion.DateEnd}");
+                
+                var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+                diagnosticInfo.Add($"Today: {today}");
+
+                if (availablePromotion.Promotion.DateStart > today || availablePromotion.Promotion.DateEnd < today)
+                {
+                    validationErrors.Add($"Promotion is not active. DateStart: {availablePromotion.Promotion.DateStart}, DateEnd: {availablePromotion.Promotion.DateEnd}, Today: {today}");
+                }
+
+                var minDeposit = availablePromotion.Promotion.MinDeposit;
+                diagnosticInfo.Add($"MinDeposit: {minDeposit?.ToString() ?? "null"}");
+                if (minDeposit.HasValue && amount < minDeposit.Value)
+                {
+                    validationErrors.Add($"Amount {amount:F2} is less than minimum deposit {minDeposit.Value:F2}");
+                }
+
+                var maxDeposit = availablePromotion.Promotion.MaxDeposit;
+                diagnosticInfo.Add($"MaxDeposit: {maxDeposit?.ToString() ?? "null"}");
+                if (maxDeposit.HasValue && amount > maxDeposit.Value)
+                {
+                    validationErrors.Add($"Amount {amount:F2} is greater than maximum deposit {maxDeposit.Value:F2}");
+                }
             }
 
-            var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
-
-            if (availablePromotion.Promotion.DateStart > today || availablePromotion.Promotion.DateEnd < today)
+            if (validationErrors.Any())
             {
-                throw new InvalidOperationException("Promotion is not active");
-            }
-
-            var minDeposit = availablePromotion.Promotion.MinDeposit;
-            if (minDeposit.HasValue && amount < minDeposit.Value)
-            {
-                throw new InvalidOperationException($"Minimum bet amount for this promotion is {minDeposit.Value:F2}");
-            }
-
-            var maxDeposit = availablePromotion.Promotion.MaxDeposit;
-            if (maxDeposit.HasValue && amount > maxDeposit.Value)
-            {
-                throw new InvalidOperationException($"Maximum bet amount for this promotion is {maxDeposit.Value:F2}");
+                var errorMessage = "Promotion validation failed:\n" + string.Join("\n", validationErrors);
+                errorMessage += "\n\nDiagnostic information:\n" + string.Join("\n", diagnosticInfo);
+                throw new InvalidOperationException(errorMessage);
             }
         }
 
