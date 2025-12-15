@@ -27,7 +27,11 @@ public partial class Player
 
     public virtual ICollection<AvailablePromotion> AvailablePromotions { get; set; } = new List<AvailablePromotion>();
 
+    public virtual ICollection<BetSlipPost> BetSlipPosts { get; set; } = new List<BetSlipPost>();
+
     public virtual ICollection<BetSlip> BetSlips { get; set; } = new List<BetSlip>();
+
+    public virtual ICollection<BetslipReaction> BetslipReactions { get; set; } = new List<BetslipReaction>();
 
     public virtual ICollection<GroupchatMessage> GroupchatMessages { get; set; } = new List<GroupchatMessage>();
 

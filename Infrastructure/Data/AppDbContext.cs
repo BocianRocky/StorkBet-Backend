@@ -17,6 +17,10 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<BetSlipOdd> BetSlipOdds { get; set; }
 
+    public virtual DbSet<BetSlipPost> BetSlipPosts { get; set; }
+
+    public virtual DbSet<BetslipReaction> BetslipReactions { get; set; }
+
     public virtual DbSet<Event> Events { get; set; }
 
     public virtual DbSet<Group> Groups { get; set; }
@@ -39,6 +43,8 @@ public partial class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.UseCollation("SQL_Latin1_General_CP1_CI_AS");
+
         modelBuilder.Entity<AvailablePromotion>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("AvailablePromotion_pk");
@@ -101,6 +107,50 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.OddsId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("BetSlipOdds_Odds");
+        });
+
+        modelBuilder.Entity<BetSlipPost>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("BetSlipPost_pk");
+
+            entity.ToTable("BetSlipPost");
+
+            entity.Property(e => e.BetSlipId).HasColumnName("BetSlip_Id");
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.PlayerId).HasColumnName("Player_Id");
+
+            entity.HasOne(d => d.BetSlip).WithMany(p => p.BetSlipPosts)
+                .HasForeignKey(d => d.BetSlipId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BetSlipPost_BetSlip");
+
+            entity.HasOne(d => d.Player).WithMany(p => p.BetSlipPosts)
+                .HasForeignKey(d => d.PlayerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BetSlipPost_Player");
+        });
+
+        modelBuilder.Entity<BetslipReaction>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("BetslipReaction_pk");
+
+            entity.ToTable("BetslipReaction");
+
+            entity.Property(e => e.BetSlipPostId).HasColumnName("BetSlipPost_Id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.PlayerId).HasColumnName("Player_Id");
+
+            entity.HasOne(d => d.BetSlipPost).WithMany(p => p.BetslipReactions)
+                .HasForeignKey(d => d.BetSlipPostId)
+                .HasConstraintName("BetslipReaction_BetSlipPost");
+
+            entity.HasOne(d => d.Player).WithMany(p => p.BetslipReactions)
+                .HasForeignKey(d => d.PlayerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BetslipReaction_Player");
         });
 
         modelBuilder.Entity<Event>(entity =>

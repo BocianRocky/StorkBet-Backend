@@ -23,5 +23,7 @@ public partial class BetSlip
 
     public virtual ICollection<BetSlipOdd> BetSlipOdds { get; set; } = new List<BetSlipOdd>();
 
+    public virtual ICollection<BetSlipPost> BetSlipPosts { get; set; } = new List<BetSlipPost>();
+
     public virtual Player Player { get; set; } = null!;
 }
