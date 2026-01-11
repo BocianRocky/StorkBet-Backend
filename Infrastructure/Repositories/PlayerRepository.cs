@@ -158,4 +158,26 @@ public class PlayerRepository : IPlayerRepository
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task<List<Player>> SearchPlayersByNameAsync(string searchTerm)
+    {
+        var dbPlayers = await _context.Players
+            .Where(p => p.Name.Contains(searchTerm) || p.LastName.Contains(searchTerm))
+            .Take(20)
+            .ToListAsync();
+
+        return dbPlayers.Select(dbPlayer => new Player
+        {
+            Id = dbPlayer.Id,
+            Name = dbPlayer.Name,
+            LastName = dbPlayer.LastName,
+            Email = dbPlayer.Email,
+            Password = dbPlayer.Password,
+            Salt = dbPlayer.Salt,
+            AccountBalance = dbPlayer.AccountBalance,
+            RefreshToken = dbPlayer.RefreshToken,
+            RefreshTokenExp = dbPlayer.RefreshTokenExp,
+            Role = (Role)dbPlayer.Role
+        }).ToList();
+    }
 }

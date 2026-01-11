@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Infrastructure.Interfaces;
 using API.DTOs;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +12,12 @@ namespace API.Controllers;
 public class GroupsController : ControllerBase
 {
     private readonly IGroupRepository _groupRepository;
+    private readonly IPlayerRepository _playerRepository;
 
-    public GroupsController(IGroupRepository groupRepository)
+    public GroupsController(IGroupRepository groupRepository, IPlayerRepository playerRepository)
     {
         _groupRepository = groupRepository;
+        _playerRepository = playerRepository;
     }
 
     /// <summary>
@@ -253,6 +256,42 @@ public class GroupsController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, $"Błąd podczas pobierania wiadomości: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Wyszukuje graczy po imieniu lub nazwisku (używane do dodawania do grupy)
+    /// </summary>
+    [HttpGet("search-players")]
+    [Authorize(Policy = "PlayerOnly")]
+    public async Task<IActionResult> SearchPlayers([FromQuery] string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return BadRequest("Query parameter jest wymagany.");
+        }
+
+        if (query.Length < 2)
+        {
+            return BadRequest("Query musi mieć co najmniej 2 znaki.");
+        }
+
+        try
+        {
+            var players = await _playerRepository.SearchPlayersByNameAsync(query);
+
+            var result = players.Select(p => new PlayerSearchResultDto
+            {
+                PlayerId = p.Id,
+                Name = p.Name,
+                LastName = p.LastName
+            }).ToList();
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Błąd podczas wyszukiwania graczy: {ex.Message}");
         }
     }
 }
