@@ -1,7 +1,6 @@
 using Domain.Entities;
-using Application.DTOs;
 
-namespace Application.Interfaces;
+namespace Domain.Interfaces;
 
 public interface IEventRepository
 {
@@ -14,12 +13,9 @@ public interface IEventRepository
     Task<Odds?> GetOddByEventAndTeamAsync(int eventId, int teamId);
     Task UpdateOddAsync(int oddId, decimal newOddsValue, DateTime lastUpdate);
     Task UpdateOddScoreAsync(int oddId, int score);
-    
-    Task<List<EventWithOddsDto>> GetEventsWithOddsBySportKeyAsync(string sportKey);
 
-    Task<Event?>GetByHomeAwayTeamDateAsync(string homeTeam, string awayTeam, DateTime commenceTime);
+    Task<Event?> GetByHomeAwayTeamDateAsync(string homeTeam, string awayTeam, DateTime commenceTime);
     
     Task MarkEventAsCompletedAsync(int eventId);
-    
-    Task<List<PopularEventDto>> GetPopularEventsAsync(int limit = 10, int daysAhead = 7);
 }
+

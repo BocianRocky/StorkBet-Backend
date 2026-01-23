@@ -1,6 +1,6 @@
 using Domain.Entities;
 
-namespace Application.Interfaces;
+namespace Domain.Interfaces;
 
 public interface IPlayerRepository
 {
@@ -15,3 +15,4 @@ public interface IPlayerRepository
     Task<bool> UpdatePlayerAsync(int playerId, string? name, string? lastName, string? email, decimal? accountBalance, int? role);
     Task<List<Player>> SearchPlayersByNameAsync(string searchTerm);
 }
+

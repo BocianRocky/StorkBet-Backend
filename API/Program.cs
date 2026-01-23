@@ -1,10 +1,10 @@
 using Application.Config;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Application.Interfaces;
-using Infrastructure.Interfaces;
+using Domain.Interfaces;
 using Infrastructure.Repositories;
 using Application.Services;
+using Application.Interfaces;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -17,16 +17,20 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-// Repositories
-builder.Services.AddScoped<ISportRepository, SportRepository>();
-builder.Services.AddScoped<IEventRepository, EventRepository>();
-builder.Services.AddScoped<ITeamRepository, TeamRepository>();
-builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
-builder.Services.AddScoped<IBetSlipRepository, BetSlipRepository>();
+// Repositories - Domain Interfaces
+builder.Services.AddScoped<Domain.Interfaces.ISportRepository, SportRepository>();
+builder.Services.AddScoped<Domain.Interfaces.IEventRepository, EventRepository>();
+builder.Services.AddScoped<Domain.Interfaces.ITeamRepository, TeamRepository>();
+builder.Services.AddScoped<Domain.Interfaces.IPlayerRepository, PlayerRepository>();
+builder.Services.AddScoped<Domain.Interfaces.IBetSlipRepository, BetSlipRepository>();
+builder.Services.AddScoped<Domain.Interfaces.IGroupRepository, GroupRepository>();
+builder.Services.AddScoped<Domain.Interfaces.ITransactionRepository, TransactionRepository>();
+
+// Repositories - Application Interfaces (extended with DTOs)
+builder.Services.AddScoped<ISportRepositoryExtended, SportRepository>();
+builder.Services.AddScoped<IEventRepositoryExtended, EventRepository>();
 builder.Services.AddScoped<IBetSlipZoneRepository, BetSlipZoneRepository>();
 builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
-builder.Services.AddScoped<IGroupRepository, GroupRepository>();
-builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
 // Services
 builder.Services.AddScoped<ISportService, SportService>();
@@ -36,6 +40,9 @@ builder.Services.AddScoped<IOddsSyncService, OddsSyncService>();
 builder.Services.AddScoped<IOddsService, OddsService>();
 builder.Services.AddScoped<IScoreSyncService, ScoreSyncService>();
 builder.Services.AddScoped<IAdminStatisticsService, Infrastructure.Services.AdminStatisticsService>();
+builder.Services.AddScoped<IPlayerService, PlayerService>();
+builder.Services.AddScoped<IGroupService, GroupService>();
+builder.Services.AddScoped<IEventService, EventService>();
 
 // HttpClient dla OddsApiService
 builder.Services.AddHttpClient<IOddsApiService, OddsApiService>();

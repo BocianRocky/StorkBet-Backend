@@ -1,9 +1,6 @@
-using System.Data.Common;
-using Application.DTOs;
 using Domain.Entities;
 
-namespace Application.Interfaces;
-
+namespace Domain.Interfaces;
 
 public interface ISportRepository
 {
@@ -11,6 +8,5 @@ public interface ISportRepository
     Task<Sport?> GetByKeyAsync(string key);
     Task AddOrUpdateAsync(Sport sport);
     Task SaveChangesAsync();
-    Task<List<SingleSportDto>> GetGroupedSportsAsync();
-    
 }
+

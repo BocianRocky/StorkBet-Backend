@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Domain.Interfaces;
 using DomainTeam = Domain.Entities.Team;
 using InfraTeam = Infrastructure.Data.Team;
 using Microsoft.EntityFrameworkCore;

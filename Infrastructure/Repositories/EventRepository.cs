@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Application.DTOs;
+using Domain.Interfaces;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,7 @@ using Team = Infrastructure.Data.Team;
 
 namespace Infrastructure.Repositories;
 
-public class EventRepository : IEventRepository
+public class EventRepository : IEventRepositoryExtended
 {
     private readonly AppDbContext _context;
 

@@ -1,6 +1,6 @@
-using Infrastructure.Data;
+using Domain.Entities;
 
-namespace Infrastructure.Interfaces;
+namespace Domain.Interfaces;
 
 public interface IGroupRepository
 {
@@ -14,3 +14,4 @@ public interface IGroupRepository
     Task<int> SendMessageAsync(int playerId, int groupId, string messageText);
     Task<List<GroupchatMessage>> GetGroupMessagesAsync(int groupId);
 }
+

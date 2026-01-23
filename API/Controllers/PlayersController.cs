@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Domain.Interfaces;
 using Application.Interfaces;
 using Application.DTOs;
 using API.DTOs;
@@ -11,14 +12,14 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class PlayersController : ControllerBase
 {
-    private readonly IPlayerRepository _playerRepository;
+    private readonly IPlayerService _playerService;
     private readonly IBetSlipRepository _betSlipRepository;
     private readonly ITransactionRepository _transactionRepository;
     private readonly IAdminStatisticsService _adminStatisticsService;
 
-    public PlayersController(IPlayerRepository playerRepository, IBetSlipRepository betSlipRepository, ITransactionRepository transactionRepository, IAdminStatisticsService adminStatisticsService)
+    public PlayersController(IPlayerService playerService, IBetSlipRepository betSlipRepository, ITransactionRepository transactionRepository, IAdminStatisticsService adminStatisticsService)
     {
-        _playerRepository = playerRepository;
+        _playerService = playerService;
         _betSlipRepository = betSlipRepository;
         _transactionRepository = transactionRepository;
         _adminStatisticsService = adminStatisticsService;
@@ -33,7 +34,7 @@ public class PlayersController : ControllerBase
 
         if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
 
-        var player = await _playerRepository.GetByIdAsync(userId);
+        var player = await _playerService.GetPlayerByIdAsync(userId);
         if (player == null) return NotFound();
 
         return Ok(new
@@ -52,7 +53,7 @@ public class PlayersController : ControllerBase
 
         if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
 
-        var player = await _playerRepository.GetByIdAsync(userId);
+        var player = await _playerService.GetPlayerByIdAsync(userId);
         if (player == null) return NotFound();
 
         return Ok(new
@@ -169,7 +170,7 @@ public class PlayersController : ControllerBase
         var userIdClaim = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst("userId")?.Value;
         if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
         if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
-        await _playerRepository.DeletePlayerAsync(userId);
+        await _playerService.DeletePlayerAsync(userId);
         
         return Ok("Konto użytkownika zostało usunięte.");
     }
@@ -186,7 +187,7 @@ public class PlayersController : ControllerBase
         {
             var transactionId = await _transactionRepository.CreateDepositAsync(userId, request.Amount, request.PaymentMethod);
             
-            var player = await _playerRepository.GetByIdAsync(userId);
+            var player = await _playerService.GetPlayerByIdAsync(userId);
             
             return Ok(new
             {
@@ -217,7 +218,7 @@ public class PlayersController : ControllerBase
         {
             var transactionId = await _transactionRepository.CreateWithdrawalAsync(userId, request.Amount, request.PaymentMethod);
             
-            var player = await _playerRepository.GetByIdAsync(userId);
+            var player = await _playerService.GetPlayerByIdAsync(userId);
             
             return Ok(new
             {

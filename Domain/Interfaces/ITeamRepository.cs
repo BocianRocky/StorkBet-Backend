@@ -1,6 +1,6 @@
 using Domain.Entities;
 
-namespace Application.Interfaces;
+namespace Domain.Interfaces;
 
 public interface ITeamRepository
 {
@@ -8,3 +8,4 @@ public interface ITeamRepository
     Task AddAsync(Team team);
     Task SaveChangesAsync();
 }
+

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using API.DTOs;
 using Application.DTOs;
 using Application.Interfaces;
+using Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,12 +13,12 @@ namespace API.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly IAdminStatisticsService _adminStatisticsService;
-    private readonly IPlayerRepository _playerRepository;
+    private readonly IPlayerService _playerService;
 
-    public AdminController(IAdminStatisticsService adminStatisticsService, IPlayerRepository playerRepository)
+    public AdminController(IAdminStatisticsService adminStatisticsService, IPlayerService playerService)
     {
         _adminStatisticsService = adminStatisticsService;
-        _playerRepository = playerRepository;
+        _playerService = playerService;
     }
 
     /// <summary>
@@ -256,7 +257,7 @@ public class AdminController : ControllerBase
     {
         var userIdClaim = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst("userId")?.Value;
         if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
-        await _playerRepository.DeletePlayerAsync(id);
+        await _playerService.DeletePlayerAsync(id);
         
         return Ok("użytkownik usunięty");
     }
@@ -270,7 +271,7 @@ public class AdminController : ControllerBase
     {
         try
         {
-            var result = await _playerRepository.UpdatePlayerAsync(
+            var result = await _playerService.UpdatePlayerAsync(
                 dto.PlayerId,
                 dto.Name,
                 dto.LastName,

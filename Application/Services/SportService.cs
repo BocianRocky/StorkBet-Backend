@@ -1,13 +1,14 @@
 using Application.DTOs;
 using Application.Interfaces;
+using Domain.Interfaces;
 using Domain.Entities;
 namespace Application.Services;
 
 public class SportService: ISportService
 {
-    private ISportRepository _repository;
+    private ISportRepositoryExtended _repository;
     
-    public SportService(ISportRepository repository)
+    public SportService(ISportRepositoryExtended repository)
     {
         _repository = repository;
     }

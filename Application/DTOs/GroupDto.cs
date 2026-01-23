@@ -1,4 +1,4 @@
-namespace API.DTOs;
+namespace Application.DTOs;
 
 public class GroupDto
 {
@@ -15,3 +15,4 @@ public class GroupMemberDto
     public string LastName { get; set; } = string.Empty;
     public bool IsOwner { get; set; }
 }
+

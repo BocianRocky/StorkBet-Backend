@@ -6,9 +6,9 @@ namespace Application.Services;
 
 public class OddsService:IOddsService
 {
-    private readonly IEventRepository _eventRepository;
+    private readonly IEventRepositoryExtended _eventRepository;
     
-    public OddsService(IEventRepository eventRepository)
+    public OddsService(IEventRepositoryExtended eventRepository)
     {
         _eventRepository = eventRepository;
     }

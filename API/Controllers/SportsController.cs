@@ -1,6 +1,7 @@
 namespace API.Controllers;
 using System.Linq;
 using Application.Interfaces;
+using Domain.Interfaces;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Application.DTOs;
 
 namespace Application.Interfaces;
@@ -36,5 +34,4 @@ public interface IPromotionRepository
         string description);
     Task<bool> DeletePromotionAsync(int promotionId);
 }
-
 

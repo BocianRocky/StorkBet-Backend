@@ -1,12 +1,12 @@
 using Application.DTOs;
 using Application.Interfaces;
+using Domain.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
-using Infrastructure.Data;
 namespace Infrastructure.Repositories;
 
-public class SportRepository: ISportRepository
+public class SportRepository: ISportRepositoryExtended
 {
     private readonly AppDbContext _context;
     

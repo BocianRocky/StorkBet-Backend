@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using Infrastructure.Interfaces;
-using API.DTOs;
+using Application.DTOs;
 using Application.Interfaces;
+using API.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,13 +11,13 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class GroupsController : ControllerBase
 {
-    private readonly IGroupRepository _groupRepository;
-    private readonly IPlayerRepository _playerRepository;
+    private readonly IGroupService _groupService;
+    private readonly IPlayerService _playerService;
 
-    public GroupsController(IGroupRepository groupRepository, IPlayerRepository playerRepository)
+    public GroupsController(IGroupService groupService, IPlayerService playerService)
     {
-        _groupRepository = groupRepository;
-        _playerRepository = playerRepository;
+        _groupService = groupService;
+        _playerService = playerService;
     }
 
     /// <summary>
@@ -33,7 +33,7 @@ public class GroupsController : ControllerBase
 
         try
         {
-            var groupId = await _groupRepository.CreateGroupAsync(userId, request.GroupName);
+            var groupId = await _groupService.CreateGroupAsync(userId, request.GroupName);
             return Ok(new { id = groupId, message = "Grupa została utworzona pomyślnie." });
         }
         catch (Exception ex)
@@ -55,21 +55,7 @@ public class GroupsController : ControllerBase
 
         try
         {
-            var groups = await _groupRepository.GetPlayerGroupsAsync(userId);
-            
-            var result = groups.Select(g => new GroupDto
-            {
-                Id = g.Id,
-                GroupName = g.GroupName,
-                Members = g.PlayerGroups.Select(pg => new GroupMemberDto
-                {
-                    PlayerId = pg.Player.Id,
-                    Name = pg.Player.Name,
-                    LastName = pg.Player.LastName,
-                    IsOwner = pg.IsGroupOwner == 1
-                }).ToList(),
-                MessageCount = g.GroupchatMessages?.Count ?? 0
-            }).ToList();
+            var result = await _groupService.GetPlayerGroupsAsync(userId);
 
             return Ok(result);
         }
@@ -91,25 +77,11 @@ public class GroupsController : ControllerBase
 
         try
         {
-            var group = await _groupRepository.GetGroupByIdAsync(id);
-            if (group == null)
+            var result = await _groupService.GetGroupByIdAsync(id);
+            if (result == null)
             {
                 return NotFound("Grupa nie została znaleziona.");
             }
-
-            var result = new GroupDto
-            {
-                Id = group.Id,
-                GroupName = group.GroupName,
-                Members = group.PlayerGroups.Select(pg => new GroupMemberDto
-                {
-                    PlayerId = pg.Player.Id,
-                    Name = pg.Player.Name,
-                    LastName = pg.Player.LastName,
-                    IsOwner = pg.IsGroupOwner == 1
-                }).ToList(),
-                MessageCount = group.GroupchatMessages?.Count ?? 0
-            };
 
             return Ok(result);
         }
@@ -132,21 +104,7 @@ public class GroupsController : ControllerBase
 
         try
         {
-            // Sprawdź czy wywołujący (inviter) jest członkiem grupy
-            var isInviterMember = await _groupRepository.IsPlayerInGroupAsync(inviterId, groupId);
-            if (!isInviterMember)
-            {
-                return Forbid("Tylko członkowie grupy mogą zapraszać innych graczy.");
-            }
-
-            // Sprawdź czy grupa istnieje
-            var group = await _groupRepository.GetGroupByIdAsync(groupId);
-            if (group == null)
-            {
-                return NotFound("Grupa nie została znaleziona.");
-            }
-
-            var result = await _groupRepository.AddPlayerToGroupAsync(request.PlayerId, groupId);
+            var result = await _groupService.AddMemberAsync(inviterId, request.PlayerId, groupId);
             
             if (!result)
             {
@@ -154,6 +112,14 @@ public class GroupsController : ControllerBase
             }
 
             return Ok("Gracz został dodany do grupy.");
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Forbid(ex.Message);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {
@@ -174,7 +140,7 @@ public class GroupsController : ControllerBase
 
         try
         {
-            var result = await _groupRepository.RemovePlayerFromGroupAsync(userId, groupId);
+            var result = await _groupService.RemoveMemberAsync(userId, groupId);
             
             if (!result)
             {
@@ -202,16 +168,13 @@ public class GroupsController : ControllerBase
 
         try
         {
-            // Sprawdź czy użytkownik jest członkiem grupy
-            var isMember = await _groupRepository.IsPlayerInGroupAsync(userId, groupId);
-            if (!isMember)
-            {
-                return Forbid("Tylko członkowie grupy mogą pisać wiadomości.");
-            }
-
-            var messageId = await _groupRepository.SendMessageAsync(userId, groupId, request.MessageText);
+            var messageId = await _groupService.SendMessageAsync(userId, groupId, request.MessageText);
 
             return Ok(new { id = messageId, message = "Wiadomość została wysłana." });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Forbid(ex.Message);
         }
         catch (Exception ex)
         {
@@ -232,26 +195,12 @@ public class GroupsController : ControllerBase
 
         try
         {
-            // Sprawdź czy użytkownik jest członkiem grupy
-            var isMember = await _groupRepository.IsPlayerInGroupAsync(userId, groupId);
-            if (!isMember)
-            {
-                return Forbid("Tylko członkowie grupy mogą czytać wiadomości.");
-            }
-
-            var messages = await _groupRepository.GetGroupMessagesAsync(groupId);
-
-            var result = messages.Select(m => new GroupMessageDto
-            {
-                Id = m.Id,
-                GroupId = m.GroupId,
-                PlayerId = m.PlayerId,
-                PlayerName = m.Player.Name,
-                PlayerLastName = m.Player.LastName,
-                MessageText = m.MessageText
-            }).ToList();
-
+            var result = await _groupService.GetGroupMessagesAsync(groupId);
             return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Forbid(ex.Message);
         }
         catch (Exception ex)
         {
@@ -278,7 +227,7 @@ public class GroupsController : ControllerBase
 
         try
         {
-            var players = await _playerRepository.SearchPlayersByNameAsync(query);
+            var players = await _playerService.SearchPlayersByNameAsync(query);
 
             var result = players.Select(p => new PlayerSearchResultDto
             {

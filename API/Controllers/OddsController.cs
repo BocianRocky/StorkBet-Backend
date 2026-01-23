@@ -28,7 +28,6 @@ public class OddsController: ControllerBase
         return Ok(new { Message = $"Odds for {sportKey} imported" });
     }
     
-    
 
     [HttpGet("{sportKey}")]
     [AllowAnonymous]

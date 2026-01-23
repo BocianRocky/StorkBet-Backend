@@ -1,4 +1,4 @@
-namespace API.DTOs;
+namespace Application.DTOs;
 
 public class RegisterPlayerRequestDto
 {
@@ -6,4 +6,5 @@ public class RegisterPlayerRequestDto
     public string LastName { get; set; }
     public string Email { get; set; }
     public string Password { get; set; }
-}   
+}
+

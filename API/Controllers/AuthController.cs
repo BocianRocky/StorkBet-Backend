@@ -1,13 +1,7 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using API.DTOs;
+using Application.DTOs;
 using Application.Interfaces;
-using Domain.Entities;
-using Infrastructure.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace API.Controllers;
 
@@ -16,81 +10,52 @@ namespace API.Controllers;
 public class AuthController:ControllerBase
 {
     private readonly IConfiguration _configuration;
-    private readonly IPlayerRepository _playerRepository;
+    private readonly IPlayerService _playerService;
     
 
-    public AuthController(IConfiguration configuration, IPlayerRepository playerRepository)
+    public AuthController(IConfiguration configuration, IPlayerService playerService)
     {
         _configuration = configuration;
-        _playerRepository = playerRepository;
+        _playerService = playerService;
     }
     
     [HttpPost("register")]
     [AllowAnonymous]
     public async Task<IActionResult> RegisterPlayer(RegisterPlayerRequestDto request)
     {
-        if (await _playerRepository.ExistsByEmailAsync(request.Email)){
-            return BadRequest("Email already exists");
-        }
-        var hashedPasswordAndSalt = SecurityHelper.GetHashedPasswordAndSalt(request.Password);
-        var player = new RegisterPlayer()
+        try
         {
-            Name = request.Name,
-            LastName = request.LastName,
-            Email = request.Email,
-            Password = hashedPasswordAndSalt.Item1,
-            Salt = hashedPasswordAndSalt.Item2,
-            RefreshToken = SecurityHelper.GenerateRefreshToken(),
-            RefreshTokenExp = DateTime.UtcNow.AddDays(1)
-        };
-        await _playerRepository.AddAsync(player);
-        return Ok();
+            await _playerService.RegisterPlayerAsync(request);
+            return Ok();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error: {ex.Message}");
+        }
     }
+    
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<IActionResult> Login(LoginRequestDto request)
     {
-        // Znajdź gracza po emailu (username to email w tym przypadku)
-        var player = await _playerRepository.GetByEmailAsync(request.Username);
-        
-        if (player == null)
+        try
         {
-            return Unauthorized("Nieprawidłowy email lub hasło");
+            string secretKey = _configuration["SecretKey"] ?? "ThisIsAVeryLongSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong123456789";
+            var response = await _playerService.LoginAsync(request, secretKey);
+            return Ok(response);
         }
-        
-        // Sprawdź hasło
-        string hashedPasswordFromDb = player.Password;
-        string currentHashedPassword = SecurityHelper.GetHashedPasswordWithSalt(request.Password, player.Salt);
-
-        if (hashedPasswordFromDb != currentHashedPassword)
+        catch (UnauthorizedAccessException ex)
         {
-            return Unauthorized("Nieprawidłowy email lub hasło");
+            return Unauthorized(ex.Message);
         }
-
-        // Generuj nowy refresh token
-        string newRefreshToken = SecurityHelper.GenerateRefreshToken();
-        DateTime refreshTokenExp = DateTime.UtcNow.AddDays(1);
-        
-        // Aktualizuj refresh token w bazie
-        await _playerRepository.UpdateRefreshTokenAsync(player.Id, newRefreshToken, refreshTokenExp);
-        
-        // Generuj JWT token
-        string secretKey = _configuration["SecretKey"] ?? "ThisIsAVeryLongSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong123456789";
-        string accessToken = SecurityHelper.GenerateJwtToken(player.Id, player.Email, player.Role.ToString(), secretKey);
-
-        var response = new LoginResponseDto
+        catch (Exception ex)
         {
-            AccessToken = accessToken,
-            RefreshToken = newRefreshToken,
-            RefreshTokenExp = refreshTokenExp,
-            UserId = player.Id,
-            Name = player.Name,
-            LastName = player.LastName,
-            Email = player.Email,
-            AccountBalance = player.AccountBalance
-        };
-
-        return Ok(response);
+            return StatusCode(500, $"Error: {ex.Message}");
+        }
     }
     
     
@@ -100,44 +65,13 @@ public class AuthController:ControllerBase
     {
         try
         {
-            // Znajdź gracza po refresh token
-            var player = await _playerRepository.GetByRefreshTokenAsync(request.RefreshToken);
-            
-            if (player == null)
-            {
-                return Unauthorized("Invalid refresh token");
-            }
-
-            // Sprawdź czy refresh token nie wygasł
-            if (player.RefreshTokenExp < DateTime.UtcNow)
-            {
-                return Unauthorized("Refresh token expired");
-            }
-
-            // Generuj nowy refresh token
-            string newRefreshToken = SecurityHelper.GenerateRefreshToken();
-            DateTime refreshTokenExp = DateTime.UtcNow.AddDays(1);
-            
-            // Aktualizuj refresh token w bazie
-            await _playerRepository.UpdateRefreshTokenAsync(player.Id, newRefreshToken, refreshTokenExp);
-
-            // Generuj nowy JWT token
             string secretKey = _configuration["SecretKey"] ?? "ThisIsAVeryLongSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong123456789";
-            string accessToken = SecurityHelper.GenerateJwtToken(player.Id, player.Email, player.Role.ToString(), secretKey);
-
-            var response = new LoginResponseDto
-            {
-                AccessToken = accessToken,
-                RefreshToken = newRefreshToken,
-                RefreshTokenExp = refreshTokenExp,
-                UserId = player.Id,
-                Name = player.Name,
-                LastName = player.LastName,
-                Email = player.Email,
-                AccountBalance = player.AccountBalance
-            };
-
+            var response = await _playerService.RefreshTokenAsync(request, secretKey);
             return Ok(response);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (Exception ex)
         {

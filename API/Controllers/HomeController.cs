@@ -8,11 +8,11 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class HomeController : ControllerBase
 {
-    private readonly IEventRepository _eventRepository;
+    private readonly IEventService _eventService;
 
-    public HomeController(IEventRepository eventRepository)
+    public HomeController(IEventService eventService)
     {
-        _eventRepository = eventRepository;
+        _eventService = eventService;
     }
     
     [HttpGet("popular-events")]
@@ -21,7 +21,7 @@ public class HomeController : ControllerBase
     {
         try
         {
-            var popularEvents = await _eventRepository.GetPopularEventsAsync(limit, daysAhead);
+            var popularEvents = await _eventService.GetPopularEventsAsync(limit, daysAhead);
 
             if (popularEvents == null || !popularEvents.Any())
                 return NotFound("Nie znaleziono popularnych spotkań.");

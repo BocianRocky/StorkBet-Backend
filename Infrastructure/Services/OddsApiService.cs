@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using Application.Config;
 using Application.DTOs;
 using Application.Interfaces;
+using Domain.Interfaces;
 using Domain.Entities;
 using Microsoft.Extensions.Options;
 

@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace Application.Interfaces;
+namespace Domain.Interfaces;
 
 public interface IBetSlipRepository
 {
@@ -12,5 +9,4 @@ public interface IBetSlipRepository
     // Automatyczne sprawdzanie wyników betslipów
     Task CheckAndUpdateAllBetSlipsResultsAsync();
 }
-
 
